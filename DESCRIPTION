@@ -1,0 +1,12 @@
+Package: RTutorBanks
+Type: Package
+Title: How important are banks for development - an interactiv RTutorium
+Version: 0.1
+Date: 2018-23-10
+Author: Katharina Stueckelmaier
+Maintainer: Katharina Stueckelmaier <k.stueckelmaier@gmx.de>
+Description: How important are banks for development?
+License: Not yet licensed by the author. The default suggestion for licensing is
+	Problem set content: Creative Commons (CC BY-SA)
+	Package code: GPL >= 2.0
+Depends: RTutor, foreign, ggmap, dplyr, ggplot2, weights, lmtest, lfe, stargazer, regtools, yaml, usmap, maps, plm
