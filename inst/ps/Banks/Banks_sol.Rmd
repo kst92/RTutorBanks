@@ -1,8 +1,3 @@
----
-output:
-  pdf_document: default
-  html_document: default
----
 # Problemset Effect of Banks
 
 How important are banks for development - an RTutor interactive Problemset
@@ -13,6 +8,7 @@ Author:  Katharina Stueckelmaier
 #< ignore
 ```{r "create_ps"}
 library(restorepoint)
+
 # facilitates error detection
 #set.restore.point.options(display.restore.point=TRUE)
 
@@ -276,14 +272,14 @@ head(tab1)
 
 Great! We have seven columns with 22552 entries in our table. 
 
-Take a look at the second row of the displayed table. There we see, that in `1870` the national banks in the county `Autauga` in `Alabama` had a capital stock of `0`. That means that at this point of time, there hasn't been a national`bank in `Gautama`. That doesn't mean, that banks in that county didn't had any capital stock at all, it just means that they hadn't enough capital to afford a national bank.
+Take a look at the second row of the displayed table. There we see, that in `1870` the national banks in the county `Autauga` in `Alabama` had a capital stock of `0`. That means that at this point of time, there hasn't been a national bank in `Gautama`. That doesn't mean, that banks in that county didn't had any capital stock at all, it just means that they hadn't enough capital to afford a national bank.
 If a bank in a county has less than 50.000$ capital stock, it is marked with `0` in our data set. Some values are marked as `NA`, meaning that we don't have any data for this case. The column `capitalstock1902` is only interesting for us, if we look at the year `1900`. In this year the minimum capital stock requirement got reduced from 50.000$ to 25.000$. So, the column `capitalstock1902` shows us how the capital amount is in `1902`. For `Autauga` the new requirement didn't make a change, they still couldn't entertain a national bank. 
 
 With `sample_n()` we get a random selection of rows of our data, to get even more familiar with our data set.
 
 **Task:** 
 
-Use the function `sample_n()` in order to show a random sample of ten rows of our table `tab1`. With `set.seed(1900)` you can create a random variable, on this way it is possible to reproduce the same sample all the time.
+Use the function `sample_n()` in order to show a random sample of ten rows of our table `tab1`. With `set.seed(x)` you can create a random variable, on this way it is possible to reproduce the same sample all the time.
 
 ```{r "1_1___Minimum_Capita__5"}
 #< task
@@ -336,6 +332,12 @@ length(unique(tab1$statename))
 length(unique(tab1$countyname))
 ```
 
+#< award "DataOverview"
+Great! You learned some ways to get an overview of a data set and can use them now on your own.
+#>
+
+
+
 **Question:**
 
 #< quiz "countynum"
@@ -347,7 +349,7 @@ answer: 1649
 
 ## How did the number of national banks change between 1870 and 1900?
 
-To analyse this, we need the data from 1870 to 1900. To reduce the size of our sample we will juts use counties with a capitalstock less than 200.000 $. Since the values in our data frame are given in 1.000 Dollar, we have to must filter out `capitalstock <= 200`. For this we make use of the function `filter` from the package `dplyr`.
+To analyse this, we need the data from 1870 to 1900. To reduce the size of our sample we will juts use counties with a capitalstock less than 200.000 $. Since the values in our data frame are given in 1.000 Dollar, we must filter out `capitalstock <= 200`. For this we make use of the function `filter` from the package `dplyr`.
 
 #< info "filter()"
 The function `filter(dat, cond)` from the package `dplyr` gives us certain rows of a data frame. Therefore, we have to define the condition `cond` by which the data set `dat`should be filtered.
@@ -374,18 +376,38 @@ dat1 = filter(tab1, year>= 1870, year <= 1900, capitalstock <= 200)%>% mutate(Ye
 Well done! 
 `mutate()` is also a function from `dplyr`. It helps us to add new variables to our data set. So, in the task before, we also created the column `Year`. As we set it as `as.factor(year)` we defined it as a factor column. 
 
+Let's take a short look, how this new variable `Year` looks like. Press `check`.
+
+```{r}
+#< task_notest
+set.seed(1234)
+sample_n(dat1, 10)
+#>
+```
+
+As you recognize, the column `Year` has the same values as `year`. The difference is, that in `year` the values are saved as integers and in `Year` we saved them as factors. We will need this later when plotting. 
+
+
 #< info "%>% Operator" 
 The pipe operator `%>%` of the package `dplyr` transmits the output from one function to the input of the next function.Thus you can easily read the function from left to right instead of reading it from the inside to the outside.
 #>
 
 
-Evtl auch f?r mutate kleine Infobox und ergebnistabelle mit neuer spalte zeigen.
 
 We will visualize the capital stock amount over the years now. A useful package to plot this is `ggplot2` 
 
 #< info "Package ggplot2" 
-The package `ggplot2` is a helpful tool to create graphics. With `+` we can simply add the various functions, we want to use in our plot.
-`ggplot(data=dat,..)` creates a ggplot object, which mandatory needs a data argument. You can modify there the aesthetics as well, e.g. `aes(x=Year, y=County)`. To plot a special graphic, for example histogram or point-diagram, you have to specify it afterwards. Here are some examples [Tabelle aus Buch Data Analisys,Maindonald, Braun, S.491]
+The package `ggplot2` is a helpful tool to create graphics, especially for plots belonging to the same group. The basis of this package is the function `ggplot()`. 
+```{r eval=FALSE}
+ggplot(data, aes(x=x_coordinate, y=y_coordinate, 
+                 fill=factor)
+```
+First, `ggplot` needs mandatory a data argument. Afterwards you can specify more details, for example `aes()`. It modifies the aesthetics. Here it is also possible to do some settings for the elements of the plot. E.g. with `fill` you can set after which factor the data points should be filled. 
+
+`ggplot()` represents a diagram as a list and saves it as an object. It is the lower layer of a diagram. (Wollschlaeger, 2014)
+With `+` we can add more layers to our diagram. On this ways, we can create a specific plot and specify some settings for the plot.
+
+Here are some examples to plot a special graph. (Maindonald, Braun, 2010, p.491) 
 <style>
 .mytable {
   border-collapse: collapse;
@@ -434,51 +456,32 @@ The package `ggplot2` is a helpful tool to create graphics. With `+` we can simp
   </tr>
   </table>
   
-Moreover it is possible to do some further settings for ggplot objects:
-
-<style>
-.mytable {
-  border-collapse: collapse;
-  margin-bottom: 15px;
-}
-.mytable td {
-  padding: 10px 15px;
-}
-.mytable th {
-  padding: 10px 15px;
-  border-bottom: 1px solid #ddd;
-}
-.right-border {
-  border-right: 1px solid #ddd;
-}
-.bigger-font-size {
-  font-size: 18px;
-}
-</style>
   
-  <table class="mytable">
-  <tr>
-  <th class="right-border">Title</th>
-  <th>+ opts(title="mytitle)"</th>
-  </tr>
-  <tr>
-  <th class="right-border">Axis label</th>
-  <th>+ xlab("myxlab")</th>
-  </tr>
-  <tr>
-  <th class="right-border">Facets Wrap</th>
-  <th>+ facet_wrap(~Year)</th>
-  </tr>
-  </table>
+Some further layers can specify the plot setting:
+
+- `ggtitle("title")` : title of the plot
+- `labs(x="text", y= "text")` : label of the x and y axis
+- `facet_wrap(~ factor)` : makes it possible to plot facets next to each other arranged as a rectangle, `factor` stands for the variable you want to split up your data
+  
+All in all a plot with the package `ggplot2` can look as following:
+
+```{r eval=FALSE}
+library(ggplot2)
+ggplot(data, aes(x=year, y= number of banks, fill=Banks)) + geom_point() + labs(x= "Year", y= "Number of Banks") + facet_wrap(~Banks)
+
+```
+
   
 To read more about the possibilities of plotting graphs, follow this link:
 
  https://cran.r-project.org/web/packages/ggplot2/ggplot2.pdf. 
 #>
 
-We want to plot our data `dat1` into a histogram to compare the amount of national banks over the years.
 
 **Task:**
+
+We want to plot our data `dat1` into a histogram to compare the amount of national banks over the years. We want to plot facets by using the factor-variable `Year`. `breaks = seq(..)` specifies the size settings of our histogram. Delete `#` and replace `??`.
+
 ```{r "1_1___Minimum_Capita__7"}
 #< task
 ##??(data=??, aes(x=capitalstock, fill=year))+ ??(breaks=seq(0, 200, by =10)) + labs(x="County nationalbank capital stock ", y= "Number of counties") + facet_wrap(~Year)
@@ -486,12 +489,8 @@ We want to plot our data `dat1` into a histogram to compare the amount of nation
 ggplot(data=dat1, aes(x=capitalstock, fill=Year))+ geom_histogram(breaks=seq(0, 200, by =10)) + 
   labs(x="County nationalbank capital stock ", y= "Number of counties") + facet_wrap(~Year)
 ```
-
-#< info "facet_wrap()"
-Using `facet_wrap(~var)` out of the package `ggplot2` makes it possible to plot facets next to each other. `var` stands for the variable you want to split up your data.
-Follow the link to learn more about it:
-
-https://www.rdocumentation.org/packages/ggplot2/versions/2.2.1/topics/facet_wrap
+#< award "Histogram"
+Congratulations! You can plot now nice histogram and know how to use facets. 
 #>
 
 In the plot we can see that a lot of national banks in certain counties had a capital stock of 0. Thus, they had no entry of national banks in this year. Furthermore, we recognize a bunching at 50, meaning that a lot of national banks entered with the minimum capital stock. We don't know if theses banks opened with their optimal capital amount for profit maximization, or if they opened with even a higher capital amount compared to what they would do, if no restriction were there. This leads us to the suggestion that the minimum capital requirement was constraining. 
@@ -507,6 +506,7 @@ cap1900 = filter(tab1, capitalstock <=200, capitalstock1902<=200, year==1900)
 ggplot(data=cap1900)+ geom_histogram(aes(cap1900$capitalstock), breaks=seq(0, 200, by =3),col ="blue", fill="blue", alpha = .5) + geom_histogram(aes(cap1900$capitalstock1902), breaks=seq(0, 200, by =3),col ="green", fill="green", alpha = .5)+ labs(x="County national bank capital stock", y= "Number of counties")
 #>
 ```
+
 The blue filled bars show the capital stock of 1900, the green bars the capital amount in 1902.
 Try to answer following questions, according to the diagram:
 
@@ -586,7 +586,7 @@ Therefore, we can define the outcome of interest, which we want to estimate as:
 
 $Y^{*}_{ct} = \gamma_{c} + \gamma_{t} + \gamma_{e}C^{*}_{ct}/P_{ct}+U^{*}_{ct}$ $(1)$. 
 
-$Y^{*}_{ct}$ displays the log production per person, our outcome of interest. $P_{ct}$ stands for the county population and certain effects are included via $\gamma_{t}$, $\gamma_{e}$ and $\gamma_{c}$.
+$Y^{*}_{ct}$ displays the log production per person, our outcome of interest. $P_{ct}$ stands for the county population and certain effects are included via $\gamma_{t}$ (time effect), $\gamma_{e}$ (endogenous effect) and $\gamma_{c}$ (county effect).
 
 There are two challenges we need, to estimate this equation. The first one is that banks can freely decide at what size of capital they want to enter. The second one is that the effects can differ over time. 
 
@@ -612,32 +612,29 @@ $Y_{ct}= \gamma_{c} +\gamma_{t}+ \gamma_{e} C^{*}_{ct}/P_{ct}+ \gamma EC_{ct}/P_
 
 Let's start with our first estimation.
 
-The variable capitalstock50pc is the capital stock normalized by the average population of 14.755 during this period in a county. So it will be in units of adding a bank of minimum size to the county population. Furthermore, to make it easier to read, we measure this variable in units of $50.000. We defined `insample`, to select all counties, not just rural ones, and also we will just pay attention to counties with a population greater than 1000, 'tpop>1000'. 
+The variable capitalstock50pc is the capital stock normalized by the average population of 14.755 during this period in a county. Furthermore, to make it easier to read, we measure this variable in units of $50.000. So it will be in units of adding a bank of minimum size to the county population. We define `insample`, to select all rural counties, and also we will just pay attention to counties with a population greater than 1000, `tpop>1000`. 
 
 **Task:**
 
 First, we must read in our data set `Data2.tab` and then filter it by `insample` and create the following variable `capitalstock50pc = capitalstock_pc*14755 / 50`.
+
 ```{r "2_1___Estimation_a"}
 #< task
-#Dat2 = ??("Data2.tab",header = TRUE, sep = "\t")%>%
+#Dat2 = ??.table("Data2.tab", header = TRUE, sep = "\t")%>%
 #       ??(capitalstock50pc = capitalstock_pc*14755/50, insample = insample_allrural & tpop>1000, L.capitalstock = lag(capitalstock))
 #>
-Dat2 = read.table("Data2.tab",header = TRUE, sep = "\t")%>%
-       mutate(capitalstock50pc = capitalstock_pc*14755 / 50,insample = insample_allrural & tpop>1000, L.capitalstock = lag(capitalstock))
-
+Dat2 = read.table("Data2.tab", header = TRUE, sep = "\t")%>%
+       mutate(capitalstock50pc = capitalstock_pc*14755 / 50, insample = insample_allrural & tpop>1000, L.capitalstock = lag(capitalstock))
 ```
 
-The first estimation we will create, will show the endogenous effect of unconstrained entry.
+### Effect of unconstrained entry
 
-#< info "endogenous effect"
-Endogeneity shows the relation between the explanatory (independent) variable and the error term. An endogenous variable collerates with the error term, meaning that the covariance of them is not equal to zero. It is important that no endogeneity is there, otherwise we will receive biased estimates.
-#>
-
-To show the effect of unconstrained entry, we will only use counties with a bank and we will just include time effects. Before starting with our first equation, we must adapt our data set to these conditions.
+To show the effect of unconstrained entry we will only use counties with a bank, since the national banks in these counties aren't constrained by the minimum capital stock size. Also, we will just include time effects. Before starting with our first equation we must adapt our data set to these conditions.
 
 **Task:**
 
-Filter the data set in the following way. Just delete '#' and press 'check'.
+Filter the data set in the shown way. Just delete `#` and press `check`.
+
 ```{r "2_1___Estimation_a_2"}
 #< task
 #d1 = filter(Dat2, capitalstock<=500, !is.na(L.capitalstock), L.capitalstock <=500, capitalstock50pc <= 5,  capitalstock50pc>0, insample)
@@ -647,43 +644,132 @@ d1 = filter(Dat2, capitalstock<=500, !is.na(L.capitalstock), L.capitalstock <=50
 
 The settings of our filter-function are choosen in the following way: `capitalstock50pc` should be greater than zero, because we just look at counties with a bank. To minimize the size of our observation we make further distraction as `capitalstock<=500` and for the normalized variable `capitalstock50pc<=5`.
 
-#< info "linear model lm()"
-The function `lm()` is used for representing linear models in its simplest form. It takes two main arguments `formula` and `data`, e.g. `lm(y~x, data=dataname)`.
+#< info "linear model"
+Have a look at the simple equation 
+
+$Y = \alpha + \beta X + \epsilon$. 
+
+- $Y$ : dependent variable
+- $X$ : explanatory variable
+- $\alpha$, $\beta$ : regression coefficient
+- $\epsilon$ : error term
+
+Our regression equation would look like $\hat Y = \alpha + \beta X$, where $\hat Y$ shows the estimated value of $Y$. 
+
+Let's describe this on a simple example. We have a sample of 50 people who we ask for their weight, which we note under `statement`. Afterwards we weight them and note the values under `scales`. All values are saved in the data set `weight`. Now we want to find out the relationship between `statement`and `scales`. To do this, we draw following simple linear regression model: $\hat {scales} = \alpha + \beta * scales$. Using R we can estimate this regression by `lm()`. (cf. Hatzinger, Hornik, Nagel (2011), pp.288)
+
+```{r eval=FALSE}
+# general form of lm()
+lm(dependent variable ~ explantory variable, data= dataset)
+
+# in our example
+lm(scales ~ statement, data= weight)
+```
+
 Read more here: 
 
 https://stat.ethz.ch/R-manual/R-devel/library/stats/html/lm.html
 #>
 
+#< info "mixed linear model"
+In the info box above, you learned how linear models are compiled and how to solve them with R. Now, we want to use this information to calculate mixed linear models.
+
+Mixed linear models have more than one explanatory variable. The equation we want to estimate looks generally like 
+
+$Y = \alpha + \beta_{1}X_{1} + ... + \beta_{n}X_{n} + \epsilon$
+
+- $Y$ : dependent variable
+- $X_{1},...X_{n}$ : explanatory variables
+- $\alhpa$, $\beta_{1},...,\beta_{n}$ : regression coefficients
+- $\epsilon$ : normal distributed error term
+- $n$ : number of data points
+
+The regression equation is of the form:
+
+$\hat Y = \alpha + \beta_{1}X_{1} + ... + \beta_{n}X_{n}$
+
+Somehow, the values of $\alpha$ and $\beta_{1},...,\beta_{n}$ has to be estimated. This procedure is called `Ordinary Least Square Estimation`, short `OLS Estimation`.  
+
+How can we make use of `lm()` in this case? We just need to bind all predictors by `+`.
+
+```{r eval=FALSE}
+lm(Y ~ X_{1} + ...+ X_{n}, data= dataset)
+```
+#>
+
 **Task:**
 
-Estimate our data set `d1` with `lm()`. We want to get the effect between log-production per person `ln_tval_pc` and `capitalstock50pc`. Furthermore, we want to include the time fixed effect, which we will do with `factor(year)`. To display the result, we use `summary()`.
+Regress log-production per person `ln_tval_pc` on `capitalstock50pc` and `factor(year)` of the data set `d1`. Make use of the function `lm()` and save it under the variable `lm1`.
 
 ```{r "2_1___Estimation_a_3"}
 #< task
-#summary(??(ln_tval_pc~ ?? + factor(year), data = d1))
+#lm1 = (??)
 #>
-summary(lm(ln_tval_pc~ capitalstock50pc + factor(year), data =d1))
+lm1 = lm(ln_tval_pc~ capitalstock50pc + factor(year), data =d1)
 ```
+#< award "Regression Level 1"
+Great! You performed your first linear regression using `lm()`.  
+#>
 
-Great! As a said before, this estimation should generate the endogenous effect of unconstrained counties. Let's check this assumption. The `cor(x,y)` function calculates the correlation coefficient. Press `check`.
+The function `summary()` is useful to display regression results.
+Let's try it out on our first regression `lm1`. Press `check`.
 
 ```{r}
 #< task_notest
-cor(d1$ln_tval_pc, d1$capitalstock50pc,use="complete.obs" )
+summary(lm1)
 #>
 ```
 
-The correlation coefficient between `ln_tval_pc`and `capitalstock50pc` is positive and thus not equal to `0`. This means endogeneity is given. 
+#< info "Output of summary()"
+The function `summary()` gives a large output. The interesting part for us, can be found under `Coefficients`:
 
-Before interpreting the result of our first estimation, let me explain another way to estimate linear models. 
+*Estimate:*  Shows us the value of the estimator $\hat \beta _{n}$ for each $\beta_{n}$. In our case it shows us how much more capital per capita we will get.
 
-#< info "linear model with fixed effects"
+*Std.Error:* Standard error measure the average amount that the estimates differ from the actual average value of the independent variable.
+
+*t value:* shows how much standard deviation the estimated coefficient $\beta _{n}$ is away from `0`. If the value is far away from `0`, we can reject the Null-Hypothesis. If this is the case, we can assume that there is a relationship between our dependent variable and the explanatory variables. 
+
+*Pr(>|t|):* here we find the p-value for a T-Test.
+
+#>
+
+Try to answer following question:
+
+#< quiz ("InterpretOutput")
+question: How much more output per person will be reached by adding a minimum-size bank to a county? Remember that "capitalstock50pc" is in units of adding a bank of minimum size to the county population. Type in a decimal with three degrees after the point, e.g.. 1.123.
+
+answer: 6.115
+#>
+
+Perfect! If we add a minimum-size national bank to a county, we will get a higher output of `6%`.
+
+#< info "t-Test for the regression coefficient"
+We will introduce the *t-Test* for the regression coefficient $\beta$ to get a better knowledge about the summary-output. The important line for our analysis is the second of the `Coeffcients` part, here `capitalstock50pc`.
+
+We want to check whether there is a linear relationship between our variable for sure.
+
+Zero-Hypothesis $H_{0}$: $\beta = 0$ 
+
+Alternative-Hypothesis $H_{A}$: $\beta >0$ or $\beta <0$
+
+If $H_{0}$ holds, than there is no linear relationship between the dependent variable and the explanatory variable of our regression. If $H_{0}$ can be rejected, $H_{A}$ holds and there is a relationship between the variables. The sign of $\beta$ shows the direction of the relationship. 
+
+$t = b / se_{b}$ follows a t-distribution under the Zero-Hypothesis. $b$ is the regression coefficient and can be found under `Estimation`, here $b=0.061152$. $se_{b}$ is the standard error of $b$, here $se_{b}=0.009182$. Thus $t=0.061152/0.009182=6.660$, the same we find under `t value`in our output. Perfect! 
+
+Now check `Pr(>|t|)`. It gives us the p-value for our test. Since $Pr(>|t|) = 3.42e-11 > 0$ we can reject the Zero-Hypothesis. Thus, we have a linear relationship between our variables of the regression (ct. Hatzinger, Hornik, Nagel (2011), pp.285).
+
+#>
+
+At the beginning of the estimation I claimed to include time effects in the regression. Using the `lm()` function I did this by introducing `factor(year)` as one of our explanatory variables. But there is a much nicer way to include effects in the estimation in R.
+
+
+#< info "linear model with effects"
 The package `lfe` has an amount of functions to estimate linear models with fixed effects. It is similar to `lm` but much faster. We will use the `felm` function of this package. The goal here is that we can separate the effects from the normal equation. Therefore, we can use it for huge data sets. It's defined as: `felm(y ~ x1 + x2 | f1 + f2 , data = dataname)`. `y ~ x1+x2` is the regression input, `f1+f2` are the multiple fixed effects.
 #>
 
 **Task:**
 
-Estimate `ln_tval_pc~capitalstock50p` using fixed effect `year` on the base of the data set `d1`. Use `felm()`, but first load the package `lfe`.
+Estimate `ln_tval_pc~capitalstock50p` using the fixed effect `year` on the base of the data set `d1`. Use `felm()`, but first load the package `lfe`.
 
 ```{r "2_1___Estimation_a_4"}
 #< task
@@ -693,17 +779,67 @@ Estimate `ln_tval_pc~capitalstock50p` using fixed effect `year` on the base of t
 library(lfe)
 summary(felm(ln_tval_pc ~capitalstock50pc | year, data=d1))
 ```
-
-#< award "Linear Models"
-Now you know how to estimate linear models with fixed effects. Keep going on, you are on the right way!
+#< award "Regression2"
+You performed the first linear regression using `felm()`. Congratulations!
 #>
 
 As you can see, we get the same result for using the function `lm` compared to `felm`. Since `felm` is faster and has an easier way to define the equation and effects, we will use `felm` in the future.
 Let's take a closer look at our result.
-The estimated value for `capitalstock50pc` is `0.061152`, that means our capital per capita is `6%`. But what does it mean? Adding a bank to a county, will lead to a higher output per person of 6%. Remember that we just took care of counties with a bank and also didn't related to the minimum capital requirement, in this estimation. 
-During the next estimations, I will explain you more deeply how to interpret the values of such results.
+The estimated value for `capitalstock50pc` is `0.061152`, that means our capital per capita is `6%`. Adding a bank to a county will lead to a higher output per person of 6%. Remember that we just took care of counties with a bank and also didn't related to the minimum capital requirement, in this estimation. 
 
-Next, we will include the minimal capital stock requirement of 50.000$ and calculate the effect of entry. Therefore, we compare counties that don't have a bank to counties with a bank, which opened at the minimum size. 
+
+
+### Effect of constrained entry 
+
+Before starting to regress the effect of unconstrained entry I will introduce the *OLS Estimation*, which I already mentioned before.
+
+#< info "Ordinary Least Squares Estimation"
+Consider the multiple regression model from before:
+
+$Y = \alpha + \beta_{1}X_{1} + ... + \beta_{n}X_{n} + \epsilon$
+
+For a better overview, we will now rename $\alpha$ to $\beta_{0}$. Furthermore we can than compress $\beta_{0}, \beta_{1},..., \beta_{k}$ to a vector $\beta$ containing the true coefficient and $X_{1},..., X_{n}$ to a matrix $X$. Thus our regression model is:
+
+$$Y = \beta X + \epsilon$$
+$\hat Y = \hat{\beta} X$ is the estimator of $Y$. Thus, we can defined the standard error tern as $\epsilon = Y - \hat{Y}$.
+
+The OLS estimator $\hat{\beta}$ is determined to minimize the objective function $S(\hat{\beta})$, which is defined by
+$$
+S(\hat{\beta}) = \sum_{i=1}^k \epsilon_i^2 = \sum_{i=1}^k (Y_i - \hat{Y}_i)^2
+$$
+where $k$ displays the number of observations. (c.t. Wooldrige (2016), Chapter 3).
+
+Like Auer and Rottmann (2010, p, 420) explain, the OLS $\hat{\beta}$ must minimize $S(\hat{\beta})$, the sum of squared residuals. Thus
+$$\hat{\beta} = (X'X)^{-1}X`Y $$
+The aim of the estimation is to get an optimal estimation for $\hat{\beta}$.
+#>
+
+When estimating a regression model we want to achieve an optimal result. Thus, some assumption has to be fulfilled, like Kennedy (2008, p.41-42) explains in his book.
+
+**Five Assumption for an optimal OLS:**
+
+1. The linear model $Y$ can be calculated as a sum of independent variables and a error term.
+
+2. The expected value of the error term of the model is zero, $\mathbb{E}(\epsilon)=0$.
+
+3. The disturbances have the uniform variance and aren't correlated with each other, $\mathbb{E}(\epsilon\epsilon') = \sigma ^2 I$.
+
+4. In repeated samples, the observations of the independent variable can be consider as fixed.
+
+5. The number of observations is greater than the amount of independent variables.
+
+
+Under this assumption we have the best OLS. Furthermore, we can than claim that the OLS estimator is even the **best linear unbiased estimator** (Auer, Rottmann(2010), p.456). That means, the OLS estimator is 
+
+1. *linear*
+
+2. *unbiased* and *consistent*: OLS is close to the true value and the average is the true value, $\mathbb{E}(\epsilon)=0$
+
+3. *efficient*: $\hat{\beta}$ has among all linear estimators the minimal variance 
+
+
+Knowing this, we will continue with our regression for calculating the effect of constrained entry.
+We will include the minimal capital stock requirement of 50.000$ and calculate the effect of entry. Therefore, we compare counties that don't have a bank to counties with a bank, which opened at the minimum size. 
 To get this effect, it is necessary to filter out all counties with a capital amount of less than $50.000.
 
 **Task:** 
@@ -719,7 +855,9 @@ d2= filter(Dat2, insample, capitalstock<=50, capitalstock50pc <= 5)
 summary(felm(ln_tval_pc ~capitalstock50pc | year, data= d2))
 ```
 
-Well done! Now I will show you how to interpret the result of a `felm()` regression. 
+Well done! I already showed how to interpret the `Coefficients` Part of a `summary()` output. For the sake of completeness, I will explain the whole output in the following info box.
+
+#< info "Output of summary()"
 
 <style>
 .mytable {
@@ -779,13 +917,9 @@ displays our regression call.</th>
   <tr>
   </table>
 
+#>
 
-
-
-
-Now you know how to read such outputs. Let's check your new knowledge with a little quiz.
-
-***Question:***
+**Question:**
 
 #< quiz "Output"
 question: How much more output per person will be reached by adding a minimum-size bank to a county, base on the last results? 
@@ -807,7 +941,6 @@ sc:
     - no
 success: Correct!
 failure: Try it again.
-
 #>
 
 
@@ -823,12 +956,161 @@ failure: Try it again.
 
 Well done! Getting a new bank in a county will lead to a higher output per person of `21.8%`, respecting the minimum capital requirement of $50.000 and including time effects.
 
+Now, we want to check if our estimation fulfills the assumptions for an optimal OLS estimator.
+
+
+#### 1. Assumption: 
+
+*The linear model can be calculated as a sum of independent variables and a error term.*
+
+We regressed `ln_tval_pc` on `capitalstock50pc` using time effects `year`. How can we write this in a equation?
+Our dependent variable $Y$ is `ln_tval_pc`, our explanatory variable is `capitalstock50pc`. The time effects can be represented as $\beta_{t}$. In that case, we get the following regression model:
+
+$$lntvalpc = \beta_{t} + \beta* capitalstock50pc + \epsilon $$
+Thus, the first assumption for receiving th best OLS is valuable.
+
+
+
+
+*Before checking the second assumption, we will review the third one.*
+
+
+#### 3. Assumption:
+
+*The disturbances have the uniform variance and aren't correlated with each other.*
+
+To show that all residuals have the same variance, we have to show that **homoskedasticity** is given. In that case our OLS- estimator will be unbiased and the disturbances will have the same variance. The opposite of homoskedasticity is called **heterooskedasticity**. In that case the OLS estimator would be unbiased and consistent but no longer efficient (Kennedy (2008), Chapter 8).
+
+#< info "Homoskedasticity & BP-Test"
+
+*Homoskedasticity*
+
+Wooldbridge (2016, p.82) **homoskedasticity** as following:
+
+"The error u has the same variance given any value of the explanatory variables. In other words, $Var(u|X_{1},...,X_{k})=\sigma^2$".
+
+We can test residuals if they are homoscedasticity or heteroscedasticity by using the *Breusch-Pagan -test*.
+
+*BP-Test*
+
+With the Breusch-Pagan-test you can test whether a linear regression model is homoskedasticity, meaning all residuals have the same variance. Therefore, it tests if the variance of the error term is dependent of the independent variables. If the test statistic has a p-value below an acceptable threshold e.g. p<0.5, then the null hypothesis of homoskedasticity is rejected and heteroskedasticity assumed. If you want to know how exactly a BP-Test is performed check Auer and Rottmann's book (2010, p.523 - 525) or Wooldridge(2016, Chapter 8.3).
+
+In R we can use the function `bptest()` of the package `lmtest`.
+
+```{r eval=FALSE}
+library(lmtest)
+bptest(var1 ~ var2, data=dat)
+```
+#>
+
+**Task**
+
+Load the package `lmtest` and perform a Breusch-Pagan Test for the variable `ln_tval_pc`and `capitalstock50pc` of the data set `d1`.
+```{r}
+#< task
+#??
+#>
+library(lmtest)
+bptest(ln_tval_pc ~ capitalstock50pc, data=d2)
+```
+#< award "Homoskedasticity"
+Congratulations! You tested the regression model for homoskedasticity.
+#>
+
+The output gives us information about the kind of test which was performed, here `studentized Breusch-Pagan test`, the data which was used and the statistics of the test. `BP` shows the value of the test statistic, `df` the degrees of freedom an `p-value` displays the p-value. 
+
+#< quiz "BP-test"
+question: At the significance level of `5%`, would you reject the null hypothesis?
+sc:
+- yes
+- no*
+success: Correct!
+failure: Try again!
+#>
+
+
+With the p-value `0.8196` we won't reject the null hypothesis at a significance level of $\alpha=5$%. Thus, we can assume homoscedastic for our residuals. Perfect! 
+
+Now, we just have to check whether our estimation variables are correlated or not.
+
+#< info "Correlation"
+
+Correlation shows if two variables have a linear relationship. The correlation coefficient between $Y$ and $X$ is defined as:
+
+$$Corr(Y,X) = Cov(Y,X) /(sd(Y)*sd(X)).$$ 
+- $Corr(Y,X)=0$, $Y$ and $X$ are independent
+- $-1<=Corr(Y,X)<=1$, $Y$ and $X$ are correlated and called **uncorrelated random variables**.
+(c.t. Wooldridge(2010), p.660)
+
+With the function `cor(Y,X)` we can calculate the correlation coefficient in R.
+#>
+
+**Task:**
+
+We will now calculate the correlation coefficient between our dependent and explanatory variable. Press `check`. 
+
+```{r}
+#< task_notest
+cor(d2$ln_tval_pc, d2$capitalstock50pc, use="complete.obs" )
+#>
+```
+
+**Question**
+
+#< quiz "Correlation"
+question: Are ln_tval_pc and capitalstock50pc correlated?
+sc:
+  -yes*
+  -no
+succes: Correct! We have a positive correlation between the two variables.
+failure: Try again.
+#>
+
+We have positive correlation. That means, getting higher values for `ln_tval_pc` will lead to higher values for `capitalstock50pc` in average (Hatzinger, Hornik, Nagel (2011), p.278).
+
+Hence, our regression models fulfil the third assumption, the disturbances are uncorrelated and have the same variance. 
+
+#### 2. Assumption: 
+
+*The expected value of the error term is 0.*
+
+$\mathbb{E}(\epsilon)=0$ should hold, meaning the OLS estimator $\hat{\beta}$ is unbiased. 
+We already showed that we have a homoskedasticity regression, thus our OLS estimator is unbiased. We don't have endogenity, we have exogenity.
+
+#< info "Endogenity and Exogenity"
+*Endogenity* means, that the is relationship between the explanatory variable and the error term. The explanatory variable collerates with the residuals. Normally, all observable factory will be part of the error term of the regression. Thus, a variable which correlates with the explanatory variable will be as well included in the error term. Thus the explanatory variable correlates with the error term.
+
+The opposite is called *Exogenity*. If we have exogenity, the estimator is consistent.
+#>
+
+
+
+#### 4. Assumption:
+
+*In repeated samples, the observations of the independent variable can be consider as fixed.*
+
+If you change the disturbance term of all endogenous variable will change simultaneously. Thus, the endogenous variable can't be considered as fixed in repeated sample(c.f. Kennedy (2008), p.171). 
+Since we have exogenity, the fourth assumption holds for our regression.
+
+
+#### 5. Assumption:
+
+*The number of observations is greater than the amount of independent variables.*
+
+Like Kennedy ((2008), p.192) declares in his book, it is nearly impossible to estimate `n` parameters with less than `n` numbers. Thus, the sample size is larger than the number of parameter they are estimating. Therefore assumption five also holds.
+
+
+Our regression model estimates the **best linear unbiased estimator**.
+
+
+## Indicator for having a county with a bank
 
 In the next step we will include an indicator for whether a county has a bank or not. Now we want to estimate how production per person depends on the capital amount of a county. For that we will use the presence of a bank in a county.
 
 **Task:**
 
 First create a new data set d3, based on our data set Dat2. Here we want to take counties with a `capitalstock <= 5` and counties which were included in the predefined value `insample`. Afterwards create a regression where we compare the relationship between `ln_tval_pc` and `banks50c`. Include `year` as fixed effects.
+
 ```{r "2_1___Estimation_a_6"}
 #< task
 #d3 = ??(Dat2, ??, ??)
@@ -837,8 +1119,8 @@ First create a new data set d3, based on our data set Dat2. Here we want to take
 d3= filter(Dat2, insample, capitalstock<=50)
 summary(felm(ln_tval_pc ~banks50c | year, data=d3))
 ```
-#< award "Master - Linear Models"
-Awesome! You created a regression on your own and can call yourself a Master of Linear Models.
+#< award "Regression3"
+Awesome! You created a regression on your own and can call yourself a Master of Linear Models. Furthermore you got used to interpret the results of such regressions.
 #>
 
 Production per person gets `37%` higher if we use the presence of banks as an indicator. 
@@ -850,6 +1132,7 @@ For comparing our regressions we use the function `stargazer()` from the same na
 #< info "stargazer()"
 
 With `stargazer()` from the package `stargazer`it is possible to present the results of various models in one table.
+
 ```{r eval=FALSE}
 #Load package
 library(stargazer)
@@ -883,79 +1166,12 @@ stargazer(felm(ln_tval_pc ~capitalstock50pc | year, data= d2),
 #>
 ```
 
-In the first regression we calculated, that the production per person is around `6%` if a bank was added. Here we calculated the endogenous effect $\gamma_{e}$.
+In the first regression we calculated, that the production per person is around `6%` if a bank was added.
 In the second regression we compared the capital stock per capita of counties with a bank of 50.000$ capital and without a bank. Counties with a bank are much more productive, as we calculated the production per person raises about `22%` if a county has at least one bank. This assumption is strengthened by our last regression. Here we have seen that the production per person is `37%` higher by including an indicator, whether the county has a bank or not.
-In these regressions we just included time effects. Next, we want to include all fixed effects.
+In these regressions we just included time effects. 
 
-
-
-## Fixed effects
-
-To calculate estimations with fixed effects R offers the package `plm`, a linear model for panel data. We will use the function `plm` out of this package. This function uses the known `lm`function to estimate panel data. But with it we can set estimation models like pooled OLS "pooling", first difference "fd" or fixed effects "within" of which we will make use. The structure of a `plm`- function is:
-`plm(formula, data, subset, weights, na.action, effect = c("individual", "time", "twoways", "nested"), model = c("within", "random", "ht", "between", "pooling", "fd"))`
-
-If you want to learn more about the `plm`-package look through the following link:
-
-"https://cran.r-project.org/web/packages/plm/plm.pdf".
-
-In the last exercise we made three estimations with time effects, to check how the adding of a bank to a certain county affects the production per person there. Our result was, that if we add a bank at minimum size to a county, we receive a higher output per person. There we differed between counties which had already a bank and counties without any bank before.
-Now we want to include as well county fixed effects as well, thus all fixed effects of our estimation are included. To do this we use `plm`. 
-Let's start with our first regression, where we just use counties that have at least one bank.
-
-**Task**
-
-Use the `plm`-function to estimate the effect between `ln_tval_pc` and `capitalstock50pc`. Since we want fixed effects to be included, use `model="within"` and `effect="twoways"`. Make use of our predefined data set `d1`.
-
-```{r "2_1___Estimation_b",results='asis'}
-#< task
-#library(plm)
-#plm1 =(??(??~ capitalstock50pc + factor(year), model="??", effect="twoways",data = d1))
-#stargazer(plm1, type="html", digits=3, report="vcsp*", omit.stat="ser", model.numbers=FALSE))
-#>
-library(plm)
-plm1 = plm(ln_tval_pc~ capitalstock50pc + factor(year), model="within", effect="twoways", data =d1)
-stargazer(plm1, type="html", digits=3, report="vcsp*", omit.stat="ser", model.numbers=FALSE)
-```
-
-Perfect! Including fixed effects leads to a higher output per person for about `2.4%` when adding a minimum size bank to a county with at least one bank. Comparing the result to our result without fixed effect of `6%`, that means much less production per person. This can be explained by respecting that "banks are attracted to more productive areas", like Fullford says. 
-
-In the next step we will estimate how much more output a county will get by adding a bank, independent if they had a bank before or not. We will include fixed effects and then compare our result to the one without any effects. I will use again `plm` for the estimation and `stargazer` to compare the results. 
-
-**Task**
-
-Delete `#` and press `check`.
-
-```{r "2_1___Estimation_b_2",results='asis'}
-#< task
-#stargazer(plm(ln_tval_pc~ capitalstock50pc + factor(year), model="within", effect="twoways", data =d2), felm(ln_tval_pc ~capitalstock50pc | year, data= d2),type="html", digits=3, report="vcsp*", omit.stat="ser", model.numbers=FALSE)
-#>
-stargazer(plm(ln_tval_pc~ capitalstock50pc + factor(year), model="within", effect="twoways", data =d2), felm(ln_tval_pc ~capitalstock50pc | year, data= d2),type="html", digits=3, report="vcsp*", omit.stat="ser", model.numbers=FALSE)
-```
-
-Counties with banks are more productive, than counties without banks. Respecting the fixed effects, production per person is `17.8%` higher.
-
-In the last step we repeat this procedure to our last regression.
-
-**Task**
-
-Delete `#` and press `check`
-
-```{r "2_1___Estimation_b_3",results='asis'}
-#< task
-#stargazer(plm(ln_tval_pc~ banks50c + factor(year), model="within", effect="twoways", data =d3), felm(ln_tval_pc ~banks50c | year, data= d3),type="html", digits=3, report="vcsp*", omit.stat="ser", model.numbers=FALSE)
-#>
-stargazer(plm(ln_tval_pc~ banks50c + factor(year), model="within", effect="twoways", data =d3), felm(ln_tval_pc ~banks50c | year, data= d3),type="html", digits=3, report="vcsp*", omit.stat="ser", model.numbers=FALSE)
-```
-
-Using an indicator for banks and including fixed effects, counties with a bank will have around `11.5%` more production per person than counties without a bank. Since endogeneity is important we must include the fixed effects, which leads to lower estimate results. 
-
-Comparing the results of these three regressions, we can approach the casual effect of entry. We've got the endogenous effect $\gamma_{e}$ for equation (2) as `2.5%`. Combining our results from the second and third regression, we can suggest the combined endogenous effect and the effect of entry at the minimum size $\gamma+\gamma_{e}$ for equation (2). Thus the effect of the entry of national bank at the minimum size in an unbanked county is around `8%`. 
-
-
-
-## Exercise 3.1 Correction of Standard Errors
-
-In this exercise we will check if our regression models fulfil the econometric analysis assumptions. Meaning that the disturbances are uncorrelated and have the same variance.
+## Exercise 3.1 - Clustering Standard Errors
+<!-- evtl das kapitel weg  -->
 
 Our data is arranged in several groups, formal called *clusters*. Clustered data is characterized by independence across clusters and correlation within clusters [Ullah and Giles, 2017, Chapter 1]. One cluster in our data set is `countynum`, numbers for several counties in the USA. It is possible, that the production per person in counties close to each other is not independent from each other but has a similar value. Thus, we could have geographical correlation. To disclaim such correlation, we will cluster our analysis at the `countynum` level.
 
@@ -972,7 +1188,7 @@ d2 = filter(Dat2, insample, capitalstock<=50, capitalstock50pc <= 5)
 
 ```
 
-First, we want to know how many clusters we will have in this analysis. 
+First, we want to know how many clusters we will have in this analysis.
 
 **Task**
 
@@ -1004,7 +1220,7 @@ According to Cameron and Miller (2015, pp. 323-325), if the given data can be di
 $$
 y_c = X_c \beta + \varepsilon_c
 $$
-where $c = 1, \ldots, C$ indicates the cluster $c$. The submatrices $y_c$, $X_c$ and $\varepsilon_c$ store values for cluster $c$ only. Hence, we get an individual regression equation for every cluster. In this case, the variance of $\hat{\beta}$ is given by
+where $c = 1, \ldots, C$ indicates the cluster $c$. The sub matrices $y_c$, $X_c$ and $\varepsilon_c$ store values for cluster $c$ only. Hence, we get an individual regression equation for every cluster. In this case, the variance of $\hat{\beta}$ is given by
 
 $$
 Var_{clu}(\hat{\beta}) = (X^T X)^{-1} \hat{B}_{clu} (X^T X)^{-1}.
@@ -1017,30 +1233,30 @@ The estimator of the residual vector for cluster $c$ is defined by $\hat{\vareps
 #>
 
 
-With the function `felm()` we used before, it is achievable to cluster. 
+With the function `felm()` we used before, it is achievable to cluster.
 
 #< info "Clustering with felm()"
 In Exercise 2.1 we described the structure of a `felm` function as following:
 ```{r optional=TRUE, eval=FALSE}
 felm(y ~ x1 + x2 | f1 + f2 , data = dataname)
 #'y ~ x1+x2' is the regression input
-#'f1+f2' are the multiple fixed effects 
+#'f1+f2' are the multiple fixed effects
 ```
-But it is as well possible to insert clustered standard errors. 
+But it is as well possible to insert clustered standard errors.
 ```{r optional=TRUE, eval=FALSE}
 felm(y ~ x1 + x2 | f1 + f2  | 0 | cluster_variable , data = dataname)
 ```
 The `0` in this formula is a placeholder for the option of covariates.
 #>
 
-We will perform now a regression with clustered standard errors, using our second regression from Exercise 2.1. There we compared the capital stock of counties with a minimum size bank and without a bank. Remember that the response variable is `ln_tval_pc` and the explanatory variable is `capitalstock50pc`. Furthermore, we used the data `d2` and had as fixed effect `year`. 
+We will perform now a regression with clustered standard errors, using our second regression from Exercise 2.1. There we compared the capital stock of counties with a minimum size bank and without a bank. Remember that the response variable is `ln_tval_pc` and the explanatory variable is `capitalstock50pc`. Furthermore, we used the data `d2` and had as fixed effect `year`.
 
 **Task**
 
-Perform a regression with standard errors clustered at the `countynum` level and use `felm()`.  Replace `?` and delete `#`. 
+Perform a regression with standard errors clustered at the `countynum` level and use `felm()`.  Replace `?` and delete `#`.
 ```{r}
 #< task
-#summary(felm(ln_tval_pc ~capitalstock50pc | year | 0 | ?? , data=d2)) 
+#summary(felm(ln_tval_pc ~capitalstock50pc | year | 0 | ?? , data=d2))
 #>
 summary(felm(ln_tval_pc ~capitalstock50pc | year | 0 | countynum, data=d2))
 ```
@@ -1050,111 +1266,164 @@ Awesome! You learned how to correct for clustering, using `felm()`.
 
 
 
-Output hier noch erklaren
+## Exercise 3.2 - Estimation with Fixed effects
 
+Before starting with this exercise, we have to load the data we used in Exercise 3 first. Press `edit` and `check`.
 
-## Homoscedasticity
-
-In the next step we want to check if our residuals have the same variance, called **Homoscedasticity**, by using the **Breush-Pagan-test**.
-
-#< info "Homoscedasticity & BP-Test"
-
-*Homoscedasticity*
-Homoscedasticity means in general `same variance`. It displays that the error term in a linear regression is the same across all values of the independent variables. The opposition is called *Heteroscedasticity*. In that case standard errors would be biased, what would lead to incorrect conclusions about the significance of the regression coefficients. We can test residuals if they are homoscedasticity or heteroscedasticity by using the *Breusch-Pagan -test*.
-
-*BP-Test*
-
-With the Breusch-Pagan-test you can test whether a linear regression model is heteroskedasticity. Therefore, it tests if the variance of the error term is dependent of the independent variables. If the test statisitc has a p-value below an acceptable treshhold e.g. p<0.5, then the null hypothesis of homoskedasticity is rejected and heteroskedasticity assumed.
-
-
-Assume the following linear model
-$$
-y = \beta_0 + \beta_1 \cdot x_1 + \ldots + \beta_k \cdot x_k + \varepsilon \tag{1}
-$$
-where $y$ is the vector of dependent variables, $x_1, \ldots, x_k$ the $k$ independent variables, $\beta_0, \beta_1, \ldots, \beta_k$ the true coefficients and $\varepsilon$ the vector of residuals. All assumptions of the linear regression model (see Exercise 3) should be fulfilled -- except for homoskedasticity, which is specified in assumption 3.
-
-The null hypothesis of the BP test should be that additionally assumption 3 is true, that is
-$$
-H_0: \text{The residuals } \varepsilon_1, \ldots, \varepsilon_{145} \text{ are homoscedastic}, \tag{2}
-$$
-which means that $\mathbb{E}(\varepsilon^2| x_1, \ldots, x_k)=\sigma^2 > 0$. Breusch and Pagan presume the following linear dependency structure of the error term.
-$$
-\varepsilon^2 = \delta_0 + \delta_1 \cdot x_1 + \ldots + \delta_{k} \cdot x_k + v
-$$
-where $\mathbb{E}(v|x_1, \ldots, x_k) = 0$. Hence, the null hypothesis of homoskedasticity given in $(2)$ is equivalent to
-$$
-H_0: \delta_1 = \delta_2 = \ldots = \delta_{k} = 0.
-$$
-As described in Hackl (2013, pp. 193-195) and Wooldridge (2016, pp. 250-252), the BP test can be performed in the following steps. At first, equation $(1)$ is estimated using OLS.
-
-In step 2 of the procedure, the equation
-$$
-\hat{\varepsilon}^2 = \delta_0 + \delta_1 \cdot x_1 + \ldots + \delta_{k} \cdot x_k + v'
-$$
-is estimated using OLS. The estimates $\hat{\varepsilon}^2$ result from OLS estimation of $(1)$. The test statistic for heteroskedasticity depends on the value of *R squared* from the regression in step 2. It will be called $R^2_\varepsilon$ in order to distinguish it from the *R squared* of regression model $(1)$.
-
-In the last step, the test statistic is computed. We will make use of the *LM statistic*, which was proposed by Koenker (1981, pp. 107-112), since it is characterized by greater applicability. His version is known as **studentized Breusch-Pagan test**. The LM statistic is given by
-$$
-LM = n \cdot R^2_\varepsilon
-$$
-where n is the number of observations. Under the null hypothesis, $LM$ approximately follows a $\chi^2_k$ distribution. In order to decide if $H_0$ should be rejected or not, the p-value has to be computed using the $\chi^2_k$ distribution.
+```{r}
+#< task
+library(dplyr)
+Dat2 = read.table("Data2.tab",header = TRUE, sep = "\t")%>%
+     mutate(capitalstock50pc = capitalstock_pc*14755 / 50,insample = insample_allrural & tpop>1000, L.capitalstock = lag(capitalstock))
+d1 = filter(Dat2, capitalstock<=500, !is.na(L.capitalstock), L.capitalstock <=500, capitalstock50pc <= 5,  capitalstock50pc>0, insample)
+d2 = filter(Dat2, insample, capitalstock<=50, capitalstock50pc <= 5) 
+d3 = filter(Dat2, insample, capitalstock<=50)
 #>
+library(dplyr)
+Dat2 = read.table("Data2.tab",header = TRUE, sep = "\t")%>%
+     mutate(capitalstock50pc = capitalstock_pc*14755 / 50,insample = insample_allrural & tpop>1000, L.capitalstock = lag(capitalstock))
+d1 = filter(Dat2, capitalstock<=500, !is.na(L.capitalstock), L.capitalstock <=500, capitalstock50pc <= 5,  capitalstock50pc>0, insample)
+d2 = filter(Dat2, insample, capitalstock<=50, capitalstock50pc <= 5) 
+d3 = filter(Dat2, insample, capitalstock<=50)
+```
 
 
-To perform the BP-Test we can use `bptest()` from the package `lmtest`. The function looks like `bptest(var1~var2, data=dat)`. 
+To calculate estimations with fixed effects R offers the package `plm`, a linear model for panel data. We will use the function `plm` out of this package. This function uses the known `lm` function to estimate panel data. But with it we can set estimation models like pooled OLS "pooling", first difference "fd" or fixed effects "within" of which we will make use. The structure of a `plm` function is:
+
+
+plm(formula, data, subset, weights, na.action, effect = c("individual", "time", "twoways", "nested"), model = c("within", "random", "ht", "between", "pooling", "fd"))
+
+If you want to learn more about the `plm` package look through the following link:
+
+"https://cran.r-project.org/web/packages/plm/plm.pdf".
+
+In the last exercise we made three estimations with time effects, to check how the adding of a bank to a certain county affects the production per person there. Our result was, that if we add a bank at minimum size to a county, we receive a higher output per person. There we differed between counties which had already a bank and counties without any bank before.
+Now we want to include as well county fixed effects as well, thus all fixed effects of our estimation are included. To do this we use `plm`. 
+Let's start with our first regression, where we just use counties that have at least one bank.
 
 **Task**
 
-Replace `?` and delete `#`. 
-```{r}
-#< task
-#Load package for the BP-Test
-##library(?)
+Use the `plm`-function to estimate the effect between `ln_tval_pc` and `capitalstock50pc`. Since we want fixed effects to be included, use `model="within"` and `effect="twoways"`. Make use of our predefined data set `d1`.
 
-#Breusch-Pagan test
-## ?(ln_tval_pc ~capitalstock50pc, data=d2)
+```{r "2_1___Estimation_b",results='asis'}
+#< task
+#library(plm)
+#plm1 =(??(??~ capitalstock50pc + factor(year), model="??", effect="twoways",data = d1))
+#stargazer(plm1, type="html", digits=3, report="vcsp*", omit.stat="ser", model.numbers=FALSE))
 #>
-library(lmtest)
-bptest(ln_tval_pc ~capitalstock50pc, data=d2)
+library(plm)
+plm1 = plm(ln_tval_pc~ capitalstock50pc + factor(year), model="within", effect="twoways", data =d1)
+stargazer(plm1, type="html", digits=3, report="vcsp*", omit.stat="ser", model.numbers=FALSE)
+```
+#< award "Regression4"
+Great! You created your frist regression by using the plm-function.
+#>
+
+Including fixed effects leads to a higher output per person for about `2.4%` when adding a minimum size bank to a county with at least one bank. Comparing the result to our result without fixed effect of `6%`, that means much less production per person. This can be explained by respecting that "banks are attracted to more productive areas", like Fullford says. 
+
+In the next step we will estimate how much more output a county will get by adding a bank, independent if they had a bank before or not. We will include fixed effects and then compare our result to the one without any effects. I will use again `plm` for the estimation and `stargazer` to compare the results. 
+
+**Task**
+
+Delete `#` and press `check`.
+
+```{r "2_1___Estimation_b_2",results='asis'}
+#< task
+#stargazer(plm(ln_tval_pc~ capitalstock50pc + factor(year), model="within", effect="twoways", data =d2), felm(ln_tval_pc ~capitalstock50pc | year, data= d2),type="html", digits=3, report="vcsp*", omit.stat="ser", model.numbers=FALSE)
+#>
+stargazer(plm(ln_tval_pc~ capitalstock50pc + factor(year), model="within", effect="twoways", data =d2), felm(ln_tval_pc ~capitalstock50pc | year, data= d2),type="html", digits=3, report="vcsp*", omit.stat="ser", model.numbers=FALSE)
 ```
 
-Great! The output gives us an information about the kind of test which was performed, here `studentized Breusch-Pagan test`, the data which was used and the statistics of the test. `BP` shows the value of the test statistic, `df` the degrees of freedom an `p-value` displays the p-value. 
+**Question:**
 
-#< quiz "BP-test"
-question: At the significance level of `5%`, would you reject the null hypothesis?
-sc:
-- yes
-- no*
-success: Correct!
-failure: Try again!
+#< quiz "plm"
+question: How much higher is the production per person output using fixed effect? Type in a decimel with one degree after the point.
+answer: 17.8
 #>
 
+Counties with banks are more productive, than counties without banks. Respecting the fixed effects, production per person is `17.8%` higher.
 
-With the p-value `0.8196` we won't reject the null hypothesis at a significance level of $\alpha=5$%. Thus, we can assume homoscedastic for our residuals. Perfect! 
+In the last step we repeat this procedure to our last regression.
 
-Now, we just have to check whether our estimation variables are correlated or not.
+**Task**
 
-#< info "Correlation"
+Delete `#` and press `check`
 
-Correlation shows if two variables have a linear relationship. It displays if two variable change together in the same or opposite way.
-
-With the function `cor(x,y)` we can calculate the correlation coefficient.
- 
-#>
-
-```{r}
+```{r "2_1___Estimation_b_3",results='asis'}
 #< task
-cor(d2$ln_tval_pc, d2$capitalstock50pc, use="complete.obs" )
+#stargazer(plm(ln_tval_pc~ banks50c + factor(year), model="within", effect="twoways", data =d3), felm(ln_tval_pc ~banks50c | year, data= d3),type="html", digits=3, report="vcsp*", omit.stat="ser", model.numbers=FALSE)
 #>
-cor(d2$ln_tval_pc, d2$capitalstock50pc, use="complete.obs" )
-
+stargazer(plm(ln_tval_pc~ banks50c + factor(year), model="within", effect="twoways", data =d3), felm(ln_tval_pc ~banks50c | year, data= d3),type="html", digits=3, report="vcsp*", omit.stat="ser", model.numbers=FALSE)
 ```
 
-Hence, our regression models fulfil the econometric analysis assumptions, the disturbances are uncorrelated and have the same variance. 
+Using an indicator for banks and including fixed effects, counties with a bank will have around `11.5%` more production per person than counties without a bank. Since endogeneity is important we must include the fixed effects, which leads to lower estimate results. 
+
+Perfect! We have already seen that gaining a national bank helps a county to get a higher production per person. I will summarise our results in the following table.
+
+<style>
+.mytable {
+  border-collapse: collapse;
+  margin-bottom: 15px;
+}
+.mytable td {
+  padding: 10px 15px;
+}
+.mytable th {
+  padding: 10px 15px;
+  border-bottom: 1px solid #ddd;
+}
+.right-border {
+  border-right: 1px solid #ddd;
+}
+.bigger-font-size {
+  font-size: 18px;
+}
+</style>
+  
+  <table class="mytable">
+  <tr>
+  <th class="right-border">Regression Model</th>
+  <th>Capital per capita</th>
+  <th>Year FE</th>
+  <th>County FE</th>
+  </tr>
+  <tr>
+  <th class="right-border">Unconstrained Entry</th>
+  <th>6.12</th>
+  <th>Yes</th>
+  <th>No</th>
+  </tr>
+  <tr>
+  <th class="right-border">Unconstrained Entry</th>
+  <th>2.42</th>
+  <th>Yes</th>
+  <th>Yes</th>
+  </tr>
+  <tr>
+  <th class="right-border">Constrained Entry</th>
+  <th>21.8</th>
+  <th>Yes</th>
+  <th>No</th>
+  </tr>
+  <th class="right-border">Constrained Entry</th>
+  <th>17.8</th>
+  <th>Yes</th>
+  <th>Yes</th>
+  <th class="right-border">Indicator for a Bank</th>
+  <th>37.0</th>
+  <th>Yes</th>
+  <th>No</th>
+  </tr>
+  <th class="right-border">Indicator for a Bank</th>
+  <th>11.5</th>
+  <th>Yes</th>
+  <th>Yes</th>
+  </tr>
+  <tr>
+  </table>
 
 
-
-## Exercise 4. Estimation with conditional mean
+## Exercise 4. - Estimation with conditional mean
 
 In this section I will show you, how to estimate with conditional mean to get a less sensitive estimation. 
 
@@ -1163,22 +1432,22 @@ Remember our equation
 $Y_{ct}= \gamma_{c} +\gamma_{t}+ \gamma_{e} C^{*}_{ct}/P_{ct}+ \gamma EC_{ct}/P_{ct}+e_{ct}$.
 
 
-The main problem here was that we couldn't observe the optimal capital stock $C_{ct}^{*}$. We will now calculate the mean optimal capital stock from the density for each county-decade $C_{ct}^{*^{mean}}$ and then replacing $C_{ct}^{*}$ by it. As simple as this sounds, we first have to check whether estimating on this way will lead to the right estimation of $\gamma$. 
+The main problem here was that we couldn't observe the optimal capital stock $C_{ct}^{*}$. Yet we will calculate the mean optimal capital stock from the density for each county-decade $C_{ct}^{*^{mean}}$ and then replacing $C_{ct}^{*}$ with it. First we have to check whether estimating on this way will lead to the right estimation of $\gamma$. 
 
 What conditions do we have to fulfill?
 
 1. Using the mean optimal capital stock shouldn't change the structure of the problem: Since the relationship between the capital stock per person and the output per person is linear, we will get a linear unbiased estimator $\gamma$ estimating with $C_{ct}^{*^{mean}}$.
 
-2. The conditional mean must be unbiased: We define $C_{ct}^{*}= C_{ct}^{*^{mean}} + u_{ct}$, where $u_{ct}$ is the error term. If $E[u_{ct}|C_{ct}^{*^{mean}}]= 0$ holds, the error term is independent of the observed value. Thus it is correlated   with the true value. Assuming this, replacing $C_{ct}^{*}$ with $C_{ct}^{*^{mean}}$ will still estimate $\gamma$   without bias.
+2. The conditional mean must be unbiased: We define $C_{ct}^{*}= C_{ct}^{*^{mean}} + u_{ct}$, where $u_{ct}$ is the error term. If $E[u_{ct}|C_{ct}^{*^{mean}}]= 0$, the error term is independent of the observed value. Thus, it is correlated with the true value. Assuming this, replacing $C_{ct}^{*}$ with $C_{ct}^{*^{mean}}$ will still estimate $\gamma$ without bias.
 
-Under this assumptions, we can use conditional mean for our estimations.
+With this assumptions, we can use conditional mean for our estimations.
 
-Since our data set is huge and has a lot of missing values, I will show you how to estimate with conditional mean with a smaller sample. Afterwards I will present the results from Fulford for the whole data set. He uses multiple imputations to fill the missing values with simulated values. If you interested in the concrete way, please have a look at the Stata-Code from the file "National_bank_analysis3.do" which you can find here: 
+Since our data set is huge and has a lot of missing values, I will show you how to estimate with conditional mean with a smaller sample. Afterwards I will present the results from Fulford for the whole data set. He uses multiple imputations to fill the missing values with simulated values. If you are interested in the concrete way, please have a look at the Stata-Code from the file "National_bank_analysis3.do" which you can find here: 
 https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/PQ6ILM.
 
 
 
-We will just look at the state `Mississippi`, which contains only rural counties and was also one of the  CSA states during the civil war. Have a look where Mississippi is located. Press `check`.
+We will just look at the state `Mississippi`, which contains only rural counties and was also one of the state under the CSA during the civil war. Have a look where Mississippi is located. Press `check`.
 
 ```{r}
 #< task_notest
@@ -1597,7 +1866,7 @@ National banks played an important role in the payment system. They could provid
 
 Finally, you can display all awards that you collected in this problem set. Just press `edit` and `check` afterwards. The maximum number of achievable awards is #nummer einfugen.
 
-```{r "7",optional=TRUE}
+```{r optional=TRUE}
 #< task
 awards()
 #>
@@ -1608,6 +1877,25 @@ awards()
 ## Exercise 7. References
 
 ### Bibliography
+
+- Auer, B., Rottmann, H. (2010): *Statistik und Oekonometrie fuer Wirtschaftswissenschaftler: Eine anwednungsorientierte Einfuehrung*. 1. Edition. Wiesbaden: Gabler Verlag.
+
+- Fahrmeir, L., Kneib, T., Lang,S. (2009): *Regression: Modelle, Methoden und Anwendungen*. 2. Edition. Heidlberg: Springer Verlag.
+
+- Faraway, J.J. (2006): *Extending the Linear Model with R: Generalized Linear, Mixed Effects and Nonparametric Regression Models*. Boca Raton: Taylor and Francis Group, LLC.
+
+- Hatzinger, R., Hornik, K., Nagel, H. (2011): *R Einfuehrung durch angewandte Statistik*. Muenchen: Pearson Studium
+
+- Kennedy, P. (2008): *A Guide to Econometrics*. 6. Edition. Malden: Blackwell Publishing.
+
+- Kohler, U., Kreuter, F. (2012): *Datenanalyse mit Stata: Allgemeine Konzepte der Datenanalyse und ihre praktische Anwendung*. 4. Edition. Muenchen: Oldenbourg Wissenschaftsverlag GmbH.
+
+- Maindonald, J., and Braun, J.W. (2010): *Data Analysis and Graphics Using R: An Example-Based Approach*. 3. Edition. Cambridge: Cambridge University Press.
+
+- Wooldrige, J.M. (2016): *Introductory Econometrics: A Modern Approach*. 6. Edition. Boston, MA: Cengage Learning
+
+- Wollschlaeger, D. (2014): *Grundlagen der Datenanalyse mit R: Eine anwendungsorientierte Einfuehrung*. 3. Edition. Berlin: Springer-Verlag.
+
 
 ### R Packages
 
@@ -1627,27 +1915,16 @@ awards()
 
 ### Web Pages
 
+- http://www.r-tutor.com/r-introduction/data-frame/data-import
 
+- https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html
 
+- https://cran.r-project.org/web/packages/ggplot2/ggplot2.pdf
 
+- https://stat.ethz.ch/R-manual/R-devel/library/stats/html/lm.html
 
+- https://cran.r-project.org/web/packages/plm/plm.pdf
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- https://de.wikipedia.org/wiki/Exogenit%C3%A4t_und_Endogenit%C3%A4t
 
 
