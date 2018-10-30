@@ -15,7 +15,7 @@ check.problem.set('Banks', ps.dir, ps.file, user.name=user.name, reset=FALSE)
 ```
 
 
-How important are banks for development - an RTutor interactive Problemset
+How important are banks for development - an Interactive Analysis with R
 
 Author:  Katharina Stueckelmaier
 
@@ -23,7 +23,7 @@ Author:  Katharina Stueckelmaier
 
 ## Welcome
 
-Welcome to this interactive RTutor Problem Set, which is part of my master thesis at the University of Ulm.
+Welcome to this interactive Problem Set, which is part of my master thesis at the University of Ulm.
 The topic is about the analysis of "How important are banks for development", based on the paper "How important are banks for development? National banks in the united states, 1870-1900" written by Scott L. Fulford. It was published in December 2015 at "The Review of Economic and Statistics". 
 
 The paper, a supplemental appendix and data are available at the following websites:
@@ -34,46 +34,97 @@ The paper, a supplemental appendix and data are available at the following websi
 
 ## Exercise Content
 
-1. Historical background
+1. Introduction
 
-2. Overview of the data
+2. Historical Background
 
-3. Casual Effect of Banking on Production
+3. Reduced Form Regression and the Effect of Minimum Requirement
 
-  3.1 Correction of Standard Errors
+  3.1 Reduced Form Regression for Unconstrained Entry
+  
+  3.2 Capital Stock and Minimum Requirement: An Overview
+  
+  3.3 Effect of Constrained Banking on Production
+  
+  3.4. Solving the Endogeneity Problem
 
-4. Estimation with Conditional Mean 
+5. Estimation with Conditional Mean 
 
-5. Robustness Check
+6. Robustness Check
 
-6. Conclusion
+7. Conclusion
 
-7. References
+8. References
 
 
 
-**Set-up of the interactive R-Tutorial**
+#### Set-up of the interactive R-Tutorial:
 
 In the following you can execute various exercises, to give you an understanding of our topic. Furthermore you will learn how to use R for solving statistical problems. I recommend to do the exercises step by step, but if you like to you can choose the order on your own, since every exercise can be solved independently.
-During the exercises you can collect awards for solving tasks right. Additional you have to possibility to receive points, for answering quizzes right. 
-You will fins many info boxes in the exercises. 
+During the exercises you can collect awards for solving tasks right. Additional you have the possibility to receive points, for answering quizzes right. 
+
 Good luck!
 
-## Exercise 1 - Historical background
+## Exercise 1 - Introduction
+
+
+Financial institute nowadays settle where they expect to make the most profits. How was the situation during economic growth times? How important were the connection and the accessibility to financial institutes during growth and could financial institutes open a bank where and when they liked to? *How important were banks during the time of development?* 
+
+To open a bank some capital stock is needed. Furthermore, we can assume that a bank wouldn't open a branch at a special place without gaining profit out of this, since banks always try to reach profit-maximization. Under which conditions would a bank choose what place to enter? Places with more productivity are usual more attractive for banks. Let's check the relationship between the available capital stock and the production per person in a county.
+
+
+**Task:** 
+
+I give you the code for a scatter plot, where we display the relationship between capital stock and production per person. Our data for the plot contains the situation in the United States in the year 1880. Just press `edit` and `check`. 
+
+```{r "1___Introduction"}
+plotData = read.table("Data2.tab", sep="\t", header=TRUE)
+library(dplyr)
+plotData = mutate(plotData, ln_tval_pc_100 = ln_tval_pc*100, capitalstockAV=capitalstock_pc*14755, year=1880)
+
+#create the plot:
+plot( plotData$capitalstockAV, plotData$ln_tval_pc_100, col="yellow", xlab="Capital Stock", ylab ="Production per person", xlim=(c(0,1500)), ylim =(c(0,1500)))
+abline(lm(ln_tval_pc_100~capitalstockAV, data = plotData ), col="red")
+```
+
+info("plot") # Run this line (Strg-Enter) to show info
+
+The yellow points display the observations. The red line shows the relationship between production per person and capital stock. As you can see in the plot, the production per person in a county is positive related with the capital stock of the counties bank. 
+The more productive the county is, the more capital stock a bank need to provide. Under this assumption, we can try to answer our main question (*How does the existence of a bank effects the development?*) by regressing production per person based on the bank's capital stock. The regression equation then will have following form:
+
+$$Y_{ct} = \gamma_{0} + \gamma_{1} C_{ct}/P_{ct} + \epsilon $$
+Our outcome of interest is the production per person, displayed in the equation as $Y_{ct}$. As we saw in the plot, this variable is related to the capital stock of a county. Thus our dependent variable will be $C_{ct}/P_{ct}$, the capital stock at the time $t$ in a county $c$ divided by the average population at this time $t$ in county $c$. Our aim is to estimate the regression and to get the causal effect $\beta_{1}$. 
+
+But as banks always try to maximize their profit they usually want to enter to places with high productivity. Assuming this, we will receive reverse causality in this regression model. 
+
+info("Reverse Causality") # Run this line (Strg-Enter) to show info
+
+In the following we will try to find out, how we can avoid reverse causality and achieve a causal effect.
+
+Therefore, we will use a period of rapid financial, economic and geographic growth in the United States (Fulford (2015)) to do the analysis. The period will be from 1870 to 1900, right after the Civil War in the United States was finished. In the next exercise I will give you a short overview of the historical background during this time.
+
+
+## Exercise 2 - Historical Background
+
+> President Lincoln's address at Gettyburg. November 19, 1863:
+"Four score and seven years ago our father brought forth on this continent a new nation conceived in liberty, and dedicated to the proposition that all men are created equal. Now we are engaged in a great civil war; testing whether that nation, or any nation so conceives, and so dedicated, can long endure. We are met on a great battlefield of that war. We have come to dedicated a portion of that field as a final resting-place for those who here gave their life that that nation might live." 
+>
+
+(Brady (1977), p.3)
+
 
 **U.S. Civil war, 1861-1865**
 
-
 During the period of 1861 to 1865, there was a civil war in the United States. The conflict was between the northern states, so called `unionstates`, and the southern states. The southern states separated themselves from the United States to create the `Confederate States of America (CSA)`. 
 
-The reason were several political, social as well as economical disagreements. The main controversy was the slavement of black people. As 1860 Abraham Lincoln got voted for president, the southern states separated since they were pro-slavery. Consequently it came to a war. But as the CSA weren't accepted as a state from the rest of the world, they didn't got any support. Thus they hadn't really a chance against the industrial advanced union states. 1865 the Union finally won the war and slavery were abandoned. 
+The reason were several political, social as well as economical disagreements. The main controversy was the slavery of black people. As 1860 Abraham Lincoln got voted for president, the southern states separated since they were pro-slavery. Consequently it came to a war. But as the CSA weren't accepted as a state from the rest of the world, they didn't get any support. Thus they hadn't really a chance against the industrial advanced union states. 1865 the Union finally won the war and slavery were abandoned. 
 
 *Map of USA*
 
 In the following map of the USA, the states of CSA are marked. Just press `check`.
 
 
-```{r "1___Historical_backg"}
+```{r "2___Historical_Backg"}
 require(maps)
 library(maps)
 CSA = c("alabama", "arkansas", "florida", "georgia", "louisiana", "mississippi", "north carolina", "south carolina", "tennessee", "texas", "virginia")
@@ -106,15 +157,14 @@ What was the benefit of having a national bank for the residents?
 
 One goal of national banks is that they could provide liquidity and thus working capital. Furthermore, they created a uniform bank note currency, so that international trading became easier. To stabilize this system, national banks were not allowed to take land as collateral, what was problematic for farmers. Their main investment activities were providing liquidity and moving funds, as Scott L. Fulford claims in his paper.
 
-
-In the next exercises we will look, how opening a national bank in certain counties affected the development and production there. Therefore we have to respect, that national banks had to have at least a capital stock of 50.000$ . In 1900 this minimum size was reduced to 25.000$.
-Our dataset contains data about the geographical location and the size of national banks in 1870, 1880, 1890 and 1900. Since there weren't any branches, we can analyse the meaning of local financial development during this period.
+In the next exercises we will look, how opening a national bank in certain counties affected the development and production there. 
+Our dataset contains data about the geographical location and the size of national banks in 1870, 1880, 1890 and 1900. Since there weren't any branches, we can analyze the meaning of local financial development during this period.
 
 
 **County Statistics**
 
 
-Before starting to analyse we want to check some variables to get used to the data. Notice, that counties with an urban population of 50.000$ or more in 1880 are excluded in this table. Thus, counties with major cities are excluded, since these counties are not constrained by the minimum capital stock requirement.
+Before starting to analyze we want to check some variables to get used to the data. Notice, that counties with an urban population of 50.000$ or more in 1880 are excluded in this table. Thus, counties with major cities are excluded, since these counties are not constrained by the minimum capital stock requirement. Note that average values are displayed in the table. (ct. Fulford (2015), p. 924)
 
 <style>
 .mytable {
@@ -206,16 +256,31 @@ The capital stock per capita increased during this period. Since there was more 
 
 If we take a deeper look at the manufacturing and farm production values, we recognize that first these values decreased and then increased again. Since time effects are included, this swap is explained by the significant deflation during this period, particularly around the Resumption Act of 1875, how Scott L. Fulford stated.
 
-Let's get a better overview of our data in the next exercise.
 
 
-## Exercise 2 - Overview of the data
+## Exercise 3. - Reduced Form Regression and the Effect of the Minimum Requirement
 
-**How does the Minimum Capital Stock-Requirement effect the entry of banks?**
+In this exercise we will try to estimate our equation of interest
 
-National banks had to follow up many rules to open in a certain county. One was the minimum capital stock requirement. This means, that they had to have at least a capital stock over 50.000$ to enter to a county.  But how does this distraction affected the number of entry of national banks? 
+$$Y_{ct} = \gamma_{0} + \gamma_{1} C_{ct}/P_{ct} + \epsilon $$
+to receive a causal estimator. 
 
-To answer this question, we will read in our first dataset. The following info box explains how data can be loaded in R.
+First, I will introduce a reduced form regression of this equation when banks are unconstrained. In this part we will ignore the minimum capital stock requirement.
+
+Second, we will take care of the required minimum size and check how this affects the capital stock in the United States during the period of 1870 to 1900.
+
+Afterwards, we will do again a reduced form regression including the requirement to find out how to estimate our regression model properly. 
+
+Through the exercise, we will try to improve and expand our regression with the aim to reach causality. And at the end I will introduce a way how to refuse endogeneity in our model.
+
+
+## Exercise 3.1. - Reduced Form Regression for Unconstrained Entry
+
+In this exercise we will try to estimate our equation of interest 
+
+$$Y_{ct} = \gamma_{0} + \gamma_{1} C_{ct}/P_{ct} + \epsilon $$
+
+First, we have to load our data. The following info box explains how data can be loaded in R.
 
 info("read.table") # Run this line (Strg-Enter) to show info
 
@@ -223,24 +288,120 @@ To start with an exercise, you often must click first `edit` to work on the code
 
 **Task:** 
 
-Read in your first data set `firstTable.tab` and save it under `tab1`. Replace `??` and `#`.
+Read in your first data set `Data2.tab` and save it under `Dat1`. Replace `??` and `#`.
 
-```{r "2___Overview_of_the___3"}
+```{r "3_1____Reduced_Form___3"}
 # ?? = read.table("??", sep="\t", header=TRUE)
 ```
 
 
-First, we want to take a closer look at our dataset. One way is to check it out under `Data Explorer`, but there is also a huge amount of calls in R, which can give us a lot of informations. With `dim()` we will get the dimension of the data, meaning how many columns and how many entries the data has, and with `head()` we will see the first few rows. Let's try it out and click on `check`:
+Furthermore I will do some more settings for our dataset. Please press `check`.
 
-```{r "2___Overview_of_the___4"}
+```{r "3_1____Reduced_Form___4"}
+library(dplyr)
+# create some variables
+Dat1 = mutate(Dat1, capitalstock50pc = capitalstock_pc*14755 / 50, insample = insample_allrural & tpop>1000, L.capitalstock = lag(capitalstock))
+
+#filter after specific conditions
+Dat1 = filter(Dat1, capitalstock<=500, !is.na(L.capitalstock), L.capitalstock <=500, capitalstock50pc <= 5,  capitalstock50pc>0, insample)
+```
+
+Now our data is ready for the estimation. Please read through the following info boxes to get to know how to estimate linear models.
+
+info("linear model") # Run this line (Strg-Enter) to show info
+
+info("Multiple Linear Regression") # Run this line (Strg-Enter) to show info
+
+We will put now time effects in our equation an try to estimate it this way:
+
+$$Y_{ct} = \gamma_{t} + \gamma_{1} C_{ct}/P_{ct} + \epsilon $$
+
+
+**Task:**
+
+Regress log-production per person `ln_tval_pc` on `capitalstock50pc` and `factor(year)` of the data set `Dat1`. Make use of the function `lm()` and save it under the variable `lm1`.
+
+```{r "3_1____Reduced_Form___7"}
+#lm1 = (??)
+```
+
+The function `summary()` is useful to display regression results.
+Let's try it out on our first regression `lm1`. Press `check`.
+
+```{r "3_1____Reduced_Form___8"}
+summary(lm1)
+```
+
+info("Output of summary()") # Run this line (Strg-Enter) to show info
+
+Try to answer following question:
+
+#! addon__quiz__InterpretOutput
+
+Thus, if a national bank opens in a county the production per person can be `6.12%` higher compared to an unbanked county.
+Remember our model equation. We said that we wanted to estimate the effect $\beta_{1}$. The aim of every regression is that this effect is a casual effect, meaning that the dependent variable depends on the explanatory variable (Field, Mile, Field (2012), p.14).
+
+info("Correlation and Causality") # Run this line (Strg-Enter) to show info
+
+**Question**
+
+#! addon__quiz__Correlation
+
+We have positive correlation. That means, getting higher values for `ln_tval_pc` will lead to higher values for `capitalstock50pc` in average (Hatzinger, Hornik, Nagel (2011), p.278).
+
+
+The dependent variable `ln_tval_pc` and the explanatory variable `capitalstock50pc` from our model are correlated. But we can't assume that we estimated the causal effect.
+
+
+Think back at the second exercise, where I explained the *National Currency Act of 1863*. One consequence was, that the national banks had to follow the **minimum capital stock requirement**. If a national bank wanted to enter at a county they had to have at least a capital stock of `50.000$`. Thus $C_{ct}$ is not only depending of the strategy of the bank, it now also depends on the minimum requirement. Furthermore, the capital stock size depends on how productive a county is. We claim here reverse causality.
+
+info("Reverse Causality") # Run this line (Strg-Enter) to show info
+
+We summarize that we have a biased estimator and reveal causality. This means, that we are confronted with endogeneity.
+
+info("Endogeneity and Exogenity") # Run this line (Strg-Enter) to show info
+
+The conclusion is, that we have to adapt our equation
+
+$$Y_{ct} = \gamma_{t}+\gamma_{e}C_{ct}/P_{ct}+U_{ct}$$
+
+to get rid of endogeneity. Note that I renamed $\beta_{1}$ to $\beta_{e}$ to point out that we have endogeneity, and the error term $\epsilon$ to $U_{ct}$.
+
+Before introducing how we could solve this problem, we will first introduce the minimum capital stock requirement and check how it influences the capital stock.
+
+## Exercise 3.2. - Capital Stock and Minimum Requirement: An Overview
+
+A conclusion of the National Banking Act 1863 was the minimum capital stock requirement of the size `50.000$`. If a bank wanted to enter at a county, they needed a capital stock amount of `50.000$`. Thus, our explanatory variable $C_{ct}/P_{ct}$ depends on this rule. If a national bank had less than `50.000$` capital stock for profit maximization, they didn't enter at all or entered with the minimum capital. Thus $C_{ct}$ is either `0` or `50.000` in that case.
+
+In the exercise before we estimated our equation
+$$Y_{ct} = \gamma_{t} + \gamma_{e}C_{ct}/P_{ct}+U_{ct}$$
+without respecting the minimum capital stock requirement. All banks included in our estimation weren't constrained by that rule. Thus we calculated the unconstrained effect of the entry of national banks in a county. The production per person increased by `6.12%`, when opening a national bank to the county. In the following we want to include the minimum capital stock rule to our analysis. 
+
+
+#### Get an Overview of the Data Set
+
+Read in the dataset. 
+
+**Task:** 
+
+Read in the data set `firstTable.tab` and save it under `tab1`. Use as separator `sep="\t"` and don't forget to set the `header` as `TRUE`.  Replace `??` and `#`. 
+
+```{r "3_2____Capital_Stock"}
+# ?? 
+```
+
+
+First, we want to take a closer look at our data set. One way is to check it out under `Data Explorer`, but there is also a huge amount of calls in R, which can give us a lot of information. With `dim()` we will get the dimension of the data, meaning how many columns and how many entries the data has, and with `head()` we will see the first few rows. Let's try it out and click on `check`:
+
+```{r "3_2____Capital_Stock__2"}
 dim(tab1)
 head(tab1)
 ```
 
 Great! We have seven columns with 22552 entries in our table. 
 
-Take a look at the second row of the displayed table. There we see, that in `1870` the national banks in the county `Autauga` in `Alabama` had a capital stock of `0`. That means that at this point of time, there hasn't been a national bank in `Gautama`. That doesn't mean, that banks in that county didn't had any capital stock at all, it just means that they hadn't enough capital to afford a national bank.
-If a bank in a county has less than 50.000$ capital stock, it is marked with `0` in our data set. Some values are marked as `NA`, meaning that we don't have any data for this case. The column `capitalstock1902` is only interesting for us, if we look at the year `1900`. In this year the minimum capital stock requirement got reduced from 50.000$ to 25.000$. So, the column `capitalstock1902` shows us how the capital amount is in `1902`. For `Autauga` the new requirement didn't make a change, they still couldn't entertain a national bank. 
+Take a look at the second row of the displayed table. There we see, that in `1870` the national banks in the county `Autauga` in `Alabama` had a capital stock of `0`. That means that at this point of time, there hasn't been a national bank in `Gautama`. They hadn't enough capital to afford a national bank.
+If a bank in a county has less than `50.000$` capital stock, it is marked with `0` in our data set. Some values are marked as `NA`, meaning that we don't have any data for this case. The column `capitalstock1902` is only interesting for us, if we look at the year `1900`. In this year the minimum capital stock requirement got reduced from `50.000$` to `25.000$`. So, the column `capitalstock1902` shows us how the capital amount is in `1902`. Since this new rule was introduced in 1900, the data of the years from 1900 are still valid for the old requirement. The changes caused by the new rule can be seen by the data of 1902. For `Autauga` the new requirement didn't make a change, they still couldn't entertain a national bank. 
 
 With `sample_n()` we get a random selection of rows of our data, to get even more familiar with our data set.
 
@@ -248,7 +409,7 @@ With `sample_n()` we get a random selection of rows of our data, to get even mor
 
 Use the function `sample_n()` in order to show a random sample of ten rows of our table `tab1`. With `set.seed(x)` you can create a random variable, on this way it is possible to reproduce the same sample all the time.
 
-```{r "2___Overview_of_the___5"}
+```{r "3_2____Capital_Stock__3"}
 #set.seed(1900)
 #sample_n(??,10)
 ```
@@ -265,16 +426,16 @@ Now, you can see a random choice of rows of our data set `tab1`. Get familiar wi
 #! addon__quiz__Kentucky
 
 
-In the next step, we want to know how many states and how many counties are in our dataset. Therefore we will make use of the function `unique()` and `length()`. 
+In the next step, we want to know how many states and how many counties are in our data set. Therefore we will make use of the function `unique()` and `length()`. 
 
 `unique(x)` produces a vector with unique values of `x`, all duplicated elements will be removed. `length(y)` generates the length of vector `y`, meaning it calculates how many elements are available in `y`. 
 
 **Task:**
 Use `unique()` and `length()` to find out how many `states` and `counties` are in our data. Delete `#` and replace `??`. After finishing this task, try to answer the question.
-```{r "2___Overview_of_the___6"}
+
+```{r "3_2____Capital_Stock__4"}
 # ??(??(tab1$statename))
 # ??(??(tab1$countyname))
-
 ```
 
 
@@ -286,27 +447,27 @@ Use `unique()` and `length()` to find out how many `states` and `counties` are i
 
 
 
-## How did the number of national banks change between 1870 and 1900?
+#### How did the number of national banks change between 1870 and 1900?
 
-To analyse this, we need the data from 1870 to 1900. To reduce the size of our sample we will juts use counties with a capitalstock less than 200.000 $. Since the values in our data frame are given in 1.000 Dollar, we must filter out `capitalstock <= 200`. For this we make use of the function `filter` from the package `dplyr`.
+To analyse this, we need the data from 1870 to 1900. To reduce the size of our sample we will just use counties with a capital stock less than 200.000 $. Since the values in our data frame are given in 1.000 Dollar, we must filter out `capitalstock <= 200`. For this we make use of the function `filter` from the package `dplyr`.
 
 info("filter()") # Run this line (Strg-Enter) to show info
 
 **Task:**
 
 Try to find all counties from our data `tab1`, which are documented at the period `1870 - 1900` and which had a `capitalstock` less than `200`. For this you need to use the function `filter`, therefore first load the package `dplyr`.
-```{r "2___Overview_of_the___7"}
+
+```{r "3_2____Capital_Stock__5"}
 #library(??)
 #dat1 = ??(??, year>= ??, year <= ??, ?? <= 200) %>% mutate(Year = as.factor(year))
-
 ```
 
 Well done! 
 `mutate()` is also a function from `dplyr`. It helps us to add new variables to our data set. So, in the task before, we also created the column `Year`. As we set it as `as.factor(year)` we defined it as a factor column. 
 
-Let's take a short look, how this new variable `Year` looks like. Press `check`.
+Let's take a quick view on how this new variable `Year` looks like. Press `check`.
 
-```{r "2___Overview_of_the___8"}
+```{r "3_2____Capital_Stock__6"}
 set.seed(1234)
 sample_n(dat1, 10)
 ```
@@ -318,7 +479,7 @@ info("%>% Operator") # Run this line (Strg-Enter) to show info
 
 
 
-We will visualize the capital stock amount over the years now. A useful package to plot this is `ggplot2` 
+We will visualize the size of the capital stock over the years now. A useful package to plot this is `ggplot2` 
 
 info("Package ggplot2") # Run this line (Strg-Enter) to show info
 
@@ -327,8 +488,8 @@ info("Package ggplot2") # Run this line (Strg-Enter) to show info
 
 We want to plot our data `dat1` into a histogram to compare the amount of national banks over the years. We want to plot facets by using the factor-variable `Year`. `breaks = seq(..)` specifies the size settings of our histogram. Delete `#` and replace `??`.
 
-```{r "2___Overview_of_the___11"}
-##??(data=??, aes(x=capitalstock, fill=year))+ ??(breaks=seq(0, 200, by =10)) + labs(x="County nationalbank capital stock ", y= "Number of counties") + facet_wrap(~Year)
+```{r "3_2____Capital_Stock__9"}
+#??(data=??, aes(x=capitalstock, fill=year)) + ??(breaks=seq(0, 200, by =10)) + labs(x="County nationalbank capital stock ", y= "Number of counties") + facet_wrap(~Year)
 ```
 
 In the plot we can see that a lot of national banks in certain counties had a capital stock of 0. Thus, they had no entry of national banks in this year. Furthermore, we recognize a bunching at 50, meaning that a lot of national banks entered with the minimum capital stock. We don't know if theses banks opened with their optimal capital amount for profit maximization, or if they opened with even a higher capital amount compared to what they would do, if no restriction were there. This leads us to the suggestion that the minimum capital requirement was constraining. 
@@ -336,7 +497,7 @@ In the plot we can see that a lot of national banks in certain counties had a ca
 
 1900 the minimum capital was reduced from 50.000 Dollar to 25.000 Dollar. How did this affect the behavior of national bank entries? As described before, in our table `tab1` we have data from 1900 and 1902. Now we want to compare them to answer the question. Therefore, we first have to filter our data and then plot them. I give you the code for that, just press `check`.
 
-```{r "2___Overview_of_the___12"}
+```{r "3_2____Capital_Stock__10"}
 # Filter data `tab1`
 cap1900 = filter(tab1, capitalstock <=200, capitalstock1902<=200, year==1900)
 # Plot two histograms, one for the data of 1900 and one for the data of 1902
@@ -351,7 +512,7 @@ Try to answer following questions, according to the diagram:
 #! addon__quiz__Plot1 
 
 
-The number of unbanked counties (with capital stock 0) decreased a lot and a huge amount of national banks opened with 25.000$ capital stock, the new minimum size. We can assume that many counties were willing to support a national bank but didn't had that much capital stock. Thus, the could have a smaller bank before but didn't had one because of the required minimum.
+The number of unbanked counties (with capital stock 0) decreased a lot and a huge amount of national banks opened with 25.000$ capital stock, the new minimum size. We can assume that many counties were willing to support a national bank but didn't had that much capital stock. Thus, they could have a smaller bank before but didn't had one because of the required minimum.
 
 Furthermore, the number of counties with national banks with a capital stock of 50.000$ increased as well. Many reduced their capital amount.
 
@@ -365,173 +526,96 @@ Resume of the facts, why minimum capital stock was binding:
 2. Reducing the minimum size to 25.000$ leads to less bunching of banks with capital amount of 0.
 3. Reducing the minimum size to 25.000$ leads to more bank openings with capital amount o 25.000$. 
 
+## Exercise 3.3. - Effect of Constrained Banking on Production
 
-## Exercise 3 - Casual Effect of Banking on Production
+#### Introduction to Optimal Capital Stock of a Bank
 
+In the last exercise you got an overview of our data set. Furthermore, we saw that the minimum capital stock requirement was binding for banks. They couldn't just open a bank with their optimal capital amount, they were constrained by the rule. 
+But how is *optimal capital* for a national bank defined?
 
-In the last exercise we saw that the minimum capital stock requirement constrained the entry. Thus, national banks maybe couldn't open with their optimal capital amount for profit maximization. But what is the optimal capital amount to have for entering with a national bank? 
-
-Let's look at the simple model of profit-maximizing, if unconstrained by the minimum capital requirement. 
-First, we define the optimal capital stock for a certain county as following:
-
-$C^{*}_{ct}=\alpha\alpha_{t}P^{\theta+1}_{ct}\eta_{c}\epsilon_{ct}$
-
+Like Varian (2011, Chapter 1) explains, every bank tries to choose the best option to enter in a county, which the bank can achieve. We will define the optimal capital stock for a bank in a certain county at a specific time as following:
+  
+$$C^{*}_{ct}=\alpha\alpha_{t}P^{\theta+1}_{ct}\eta_{c}\epsilon_{ct}$$
+    
 where $P_{ct}$ displays the county population, $\eta_{c}$ stands for local unobservant business conditions and $\epsilon_{ct}$ for local temporal shocks.
+  
+info("How to get the optimal capital stock equation for banks") # Run this line (Strg-Enter) to show info
+  
+Under the assumption that banks will always open with their optimal capital stock, we redefine the outcome of interest as: 
+    
+$$Y^{*}_{ct} = \gamma_{t} + \gamma_{e}C^{*}_{ct}/P_{ct}+U^{*}_{ct}$$ 
+  
+- $Y^{*}_{ct}$: outcome of interest, in our case that will be production per person
+- $P_{ct}$: county population at the time $t$ in county $c$
+- $C^{*}_{ct}$: optimal capital stock
+- $U^{*}_{ct}$: error term
+- $\gamma_{t}$ , $\gamma_{e}$: specific effects
 
-info("How to get the optimal capital stock equation for unconstrained banks") # Run this line (Strg-Enter) to show info
+<!-- In our regression model  -->
 
-Now assume that bank could enter freely. Thus, they will try to maximize their profit and enter with their optimal capital stock amount $C^{*}_{ct}$ for a county `c` at time `t`. Remember that we defined the optimal capital stock as follow: 
+<!-- $$Y^{*}_{ct} = \gamma_{t} + \gamma_{e}C^{*}_{ct}/P_{ct}+U^{*}_{ct} (1)$$ -->
 
-$C^{*}_{ct}= \alpha\alpha_{t}P_{ct}^{\delta+1}\eta_{c}\epsilon_{ct}$.
+<!-- we have an endogeneity problem. The variable $C^{*}_{ct}/P_{ct}$ is an endogenous explanatory variable, meaning it correlates with the error term $U^{*}_{ct}$. Thus, we will receive an inconsistent and biased estimator $\hat{\beta}$, because $\mathbb{E}((C^{*}_{ct}/P_{ct})'U^{*}_{ct}) !=0$ (Winker (2007), p.177).  -->
 
-Therefore, we can define the outcome of interest, which we want to estimate as: 
+<!-- As the aim of every economist is to deduce that one variable has a causal effect on another variable, we must solve this endogeneity problem. -->
 
-$Y^{*}_{ct} = \gamma_{c} + \gamma_{t} + \gamma_{e}C^{*}_{ct}/P_{ct}+U^{*}_{ct}$ $(1)$. 
+During the observed period from 1870 to 1900, national banks couldn't freely enter in a county. They had to open with a minimum capital stock of at least 50.000$. Differentiate between the size of capital stocks of banks:
 
-$Y^{*}_{ct}$ displays the log production per person, our outcome of interest. $P_{ct}$ stands for the county population and certain effects are included via $\gamma_{t}$ (time effect), $\gamma_{e}$ (endogenous effect) and $\gamma_{c}$ (county effect).
+- $C^{*}_{ct}$: capital stock size to optimize the profit of a bank
 
-There are two challenges we need, to estimate this equation. The first one is that banks can freely decide at what size of capital they want to enter. The second one is that the effects can differ over time. 
+- $C_{ct}$: actually capital stock size of a bank which entered in a county
 
-But as we know, banks couldn't freely open a bank in a certain county during this period. They had to open with a minimum capital stock of at least 50.000$. What is the consequence for the banks?
+We get the following two cases.
 
-Some banks that could have entered with a capital stock less than the required minimum, couldn't enter at all. Thus we must differ between what banks actually do $C_{ct}$ and what they would like to do, to optimize their profit, $C^{*}_{ct}$. 
+1. $C^{*}_{ct} >= 50.000$ Dollar: If the optimal capital stock for a bank is higher than the required minimum capital stock, it is obvious that the bank will open with the profit-maximizing capital. Thus, $C_{ct} = C^{*}_{ct}$  
 
-- if $C^{*}_{ct} >= 50.000 Dollar$ than for constrained counties holds $C_{ct} >= 50.000 Dollar$
-- if $C^{*}_{ct} <= 50.000 Dollar$ than for constrained counties holds $C_{ct} = 0$ 
+2. $C^{*}_{ct} < 50.000$ Dollar: In this situation a bank can either denier to enter in a county or were forced to open with the minimum capital of `50.000$`. Thus, $C_{ct}$ jumps discontinuously between `0` and `50.000$`. We have either $C_{ct}=0$ or $C_{ct}=50.000$.
+  
+  
+How can we calculate the optimal capital stock for our data set? Fulford (2015, p.926-927) explains that the optimal capital stock can be estimated by a maximum likelihood estimator. The results of this estimation are already included in our data set.
 
-In the equation (1) we already saw the endogenous relationship. Because of the minimum requirement, banks almost can't enter with their optimal capital, we get a new effect:
+#### Efect of Constrained Banking on Production
 
-$Y_{ct}-Y^{*}_{ct} = \gamma EC_{ct} / P_{ct}+U_{ct}$, where:
-- $Y_{ct}$ outcome with rule
-- $Y^{*}_{ct}$ outcome if banks could enter freely
-- $\gamma$ displays the effect of the minimum size requirement
-- $EC_{ct} = C_{ct}-C^{*}_{ct}$ excess capital
+Like in Exercise 3 we will estimate our regression model, but this time we respect the minimum capital stock of 50.000$ and include the assumption, that banks always try to enter with their optimal capital stock.
 
-If we combine the new effect with equation $(1)$, we get:
+$$Y^{*}_{ct} = \gamma_{t} + \gamma_{e}C^{*}_{ct}/P_{ct}+U^{*}_{ct}$$
 
-$Y_{ct}= \gamma_{c} +\gamma_{t}+ \gamma_{e} C^{*}_{ct}/P_{ct}+ \gamma EC_{ct}/P_{ct}+e_{ct}$
+First we have to read in our data again. Press `edit` and `check`. 
 
-
-Let's start with our first estimation.
-
-The variable capitalstock50pc is the capital stock normalized by the average population of 14.755 during this period in a county. Furthermore, to make it easier to read, we measure this variable in units of $50.000. So it will be in units of adding a bank of minimum size to the county population. We define `insample`, to select all rural counties, and also we will just pay attention to counties with a population greater than 1000, `tpop>1000`. 
-
-**Task:**
-
-First, we must read in our data set `Data2.tab` and then filter it by `insample` and create the following variable `capitalstock50pc = capitalstock_pc*14755 / 50`.
-
-```{r "3___Casual_Effect_of"}
-#Dat2 = ??.table("Data2.tab", header = TRUE, sep = "\t")%>%
-#       ??(capitalstock50pc = capitalstock_pc*14755/50, insample = insample_allrural & tpop>1000, L.capitalstock = lag(capitalstock))
+```{r "3_3____Effect_of_Con"}
+Dat1 = read.table("Data2.tab", header = TRUE, sep = "\t")%>%
+       mutate(capitalstock50pc = capitalstock_pc*14755 / 50, insample = insample_allrural & tpop>1000, L.capitalstock = lag(capitalstock))
 ```
 
-### Effect of unconstrained entry
+Using the `mutate()` function, we created the variable `capitalstock50pc`. It is the capital stock normalized by the average population of 14.755 during the observed period in a county. Furthermore, to make it easier to read, we measure this variable in units of `50.000$`. So it will be in units of adding a bank of minimum size to the county population.
+We define `insample` to select all rural counties, and also we will just pay attention to counties with a population greater than 1000, `tpop>1000`. With `lag()` we define the lag variable for capitalstock, to respect growth effects.
 
-To show the effect of unconstrained entry we will only use counties with a bank, since the national banks in these counties aren't constrained by the minimum capital stock size. Also, we will just include time effects. Before starting with our first equation we must adapt our data set to these conditions.
+To calculate the effect of constrained entry of a national bank to a county, we will include the minimal capital stock requirement of `50.000$`. We will compare counties that don't have a bank to counties with a bank, which opened at the minimum size. 
+To get this effect, it is necessary to filter out all counties with a capital amount of less than `50.000$`. On this way we get all counties with national banks with a capital size of either `0` of `50.000$`.
 
-**Task:**
+**Task:** 
 
-Filter the data set in the shown way. Just delete `#` and press `check`.
+Filter `capitalstock<=50` and `capitalstock50pc<=5`, to get all constrained banks. Again, our data selection should be in our defined `insample` variable, remember that this shows us all rural counties with population greater than 1000. 
 
-```{r "3___Casual_Effect_of__2"}
-#d1 = filter(Dat2, capitalstock<=500, !is.na(L.capitalstock), L.capitalstock <=500, capitalstock50pc <= 5,  capitalstock50pc>0, insample)
+```{r "3_3____Effect_of_Con__2"}
+#d1 = filter(Dat1, insample, ??, ??)
+
 ```
 
-The settings of our filter-function are choosen in the following way: `capitalstock50pc` should be greater than zero, because we just look at counties with a bank. To minimize the size of our observation we make further distraction as `capitalstock<=500` and for the normalized variable `capitalstock50pc<=5`.
+You already know, how to regress an equation by using the function `lm()`. With the function `felm()` out of the package `lfe`, I will show you a much faster way to estimate linear model. 
 
-info("linear model") # Run this line (Strg-Enter) to show info
-
-info("mixed linear model") # Run this line (Strg-Enter) to show info
-
-**Task:**
-
-Regress log-production per person `ln_tval_pc` on `capitalstock50pc` and `factor(year)` of the data set `d1`. Make use of the function `lm()` and save it under the variable `lm1`.
-
-```{r "3___Casual_Effect_of__5"}
-#lm1 = (??)
-```
-
-The function `summary()` is useful to display regression results.
-Let's try it out on our first regression `lm1`. Press `check`.
-
-```{r "3___Casual_Effect_of__6"}
-summary(lm1)
-```
-
-info("Output of summary()") # Run this line (Strg-Enter) to show info
-
-Try to answer following question:
-
-#! addon__quiz__InterpretOutput
-
-Perfect! If we add a minimum-size national bank to a county, we will get a higher output of `6%`.
-
-info("t-Test for the regression coefficient") # Run this line (Strg-Enter) to show info
-
-At the beginning of the estimation I claimed to include time effects in the regression. Using the `lm()` function I did this by introducing `factor(year)` as one of our explanatory variables. But there is a much nicer way to include effects in the estimation in R.
-
-
-info("linear model with effects") # Run this line (Strg-Enter) to show info
+info("felm() function") # Run this line (Strg-Enter) to show info
 
 **Task:**
 
 Estimate `ln_tval_pc~capitalstock50p` using the fixed effect `year` on the base of the data set `d1`. Use `felm()`, but first load the package `lfe`.
 
-```{r "3___Casual_Effect_of__7"}
+```{r "3_3____Effect_of_Con__4"}
 #library(??)
 #summary(??(ln_tval_pc~capitalstock50pc |year , data = d1))
 ```
 
-As you can see, we get the same result for using the function `lm` compared to `felm`. Since `felm` is faster and has an easier way to define the equation and effects, we will use `felm` in the future.
-Let's take a closer look at our result.
-The estimated value for `capitalstock50pc` is `0.061152`, that means our capital per capita is `6%`. Adding a bank to a county will lead to a higher output per person of 6%. Remember that we just took care of counties with a bank and also didn't related to the minimum capital requirement, in this estimation. 
-
-
-
-### Effect of constrained entry 
-
-Before starting to regress the effect of unconstrained entry I will introduce the *OLS Estimation*, which I already mentioned before.
-
-info("Ordinary Least Squares Estimation") # Run this line (Strg-Enter) to show info
-
-When estimating a regression model we want to achieve an optimal result. Thus, some assumption has to be fulfilled, like Kennedy (2008, p.41-42) explains in his book.
-
-**Five Assumption for an optimal OLS:**
-
-1. The linear model $Y$ can be calculated as a sum of independent variables and a error term.
-
-2. The expected value of the error term of the model is zero, $\mathbb{E}(\epsilon)=0$.
-
-3. The disturbances have the uniform variance and aren't correlated with each other, $\mathbb{E}(\epsilon\epsilon') = \sigma ^2 I$.
-
-4. In repeated samples, the observations of the independent variable can be consider as fixed.
-
-5. The number of observations is greater than the amount of independent variables.
-
-
-Under this assumption we have the best OLS. Furthermore, we can than claim that the OLS estimator is even the **best linear unbiased estimator** (Auer, Rottmann(2010), p.456). That means, the OLS estimator is 
-
-1. *linear*
-
-2. *unbiased* and *consistent*: OLS is close to the true value and the average is the true value, $\mathbb{E}(\epsilon)=0$
-
-3. *efficient*: $\hat{\beta}$ has among all linear estimators the minimal variance 
-
-
-Knowing this, we will continue with our regression for calculating the effect of constrained entry.
-We will include the minimal capital stock requirement of 50.000$ and calculate the effect of entry. Therefore, we compare counties that don't have a bank to counties with a bank, which opened at the minimum size. 
-To get this effect, it is necessary to filter out all counties with a capital amount of less than $50.000.
-
-**Task:** 
-
-Filter `capitalstock<=50` and equal to that filter as well `capitalstock50pc<=5`. Again, our data selection should be in our `insample`, remember that this shows us all counties with population greater than 1000. Afterwards estimate the regression `ln_tval_pc ~ capitalstock50pc`.
-
-```{r "3___Casual_Effect_of__8"}
-#d2 = filter(Dat2, insample, ??, ??)
-#summary(felm(ln_tval_pc~?? |year , data = ??))
-```
-
-Well done! I already showed how to interpret the `Coefficients` Part of a `summary()` output. For the sake of completeness, I will explain the whole output in the following info box.
+Well done! You already know how to interpret the `Coefficients` part of a `summary()` output. For the sake of completeness, I will explain the whole output in the following info box.
 
 info("Output of summary()") # Run this line (Strg-Enter) to show info
 
@@ -539,231 +623,69 @@ info("Output of summary()") # Run this line (Strg-Enter) to show info
 
 #! addon__quiz__Output
 
+info("t-Test for the regression coefficient") # Run this line (Strg-Enter) to show info
+
+As I introduced how a linear model is general estimated, I explained you that the estimation is based on the `OLS Estimation`. In the following you can learn more about that topic.
+
+info("Ordinary Least Squares Estimation") # Run this line (Strg-Enter) to show info
+
+When estimating a regression model we want to achieve an optimal result. Thus, some assumption has to be fulfilled, like Kennedy (2008, p.41-42) explains in his book.
+
+info("Five Assumptions for an optimal OLS estimator") # Run this line (Strg-Enter) to show info
+
+Since we have endogeneity in our model, we break the second assumption cause we have a biased estimator.
+
+The endogenous effect of unconstrained entry can also be estimated by using an *indicator* for whether the county has a bank or not.
+
+**Task:**
+
+First create a new data set `d2`, based on our data set `Dat1`. Here we want to take counties with a `capitalstock <= 5` and counties which were included in the predefined value `insample`. Afterwards create a regression where we compare the relationship between `ln_tval_pc` and `banks50c`. Include `year` as fixed effects.
+
+```{r "3_3____Effect_of_Con__5"}
+#d2 = ??(Dat1, ??, ??)
+#summary(??(ln_tval_pc ~ ?? | ??, data=d2))
+```
+
+Production per person gets `37%` higher if we use the presence of banks as an indicator.
 
 #! addon__quiz__NullHypothesis
 
 
 #! addon__quiz__NullHypothesis2
 
-Well done! Getting a new bank in a county will lead to a higher output per person of `21.8%`, respecting the minimum capital requirement of $50.000 and including time effects.
 
-Now, we want to check if our estimation fulfills the assumptions for an optimal OLS estimator.
+#### Fixed effects
 
+We already involved time effects in our regression equation, yet we also want to include county fixed effects. Our regression model is now of the form
 
-#### 1. Assumption: 
+$$Y^{*}_{ct} = \gamma_{t} + \gamma_{e}C^{*}_{ct}/P_{ct}+U^{*}_{ct}$$
 
-*The linear model can be calculated as a sum of independent variables and a error term.*
+To calculate estimations with fixed effects R offers also the package `plm`, a linear model for panel data. We will use the function `plm` out of this package. This function uses the known `lm` function to estimate panel data. But with it we can set estimation models like pooled OLS "pooling", first difference "fd" or fixed effects "within" of which we will make use. The structure of a `plm` function is:
 
-We regressed `ln_tval_pc` on `capitalstock50pc` using time effects `year`. How can we write this in a equation?
-Our dependent variable $Y$ is `ln_tval_pc`, our explanatory variable is `capitalstock50pc`. The time effects can be represented as $\beta_{t}$. In that case, we get the following regression model:
 
-$$lntvalpc = \beta_{t} + \beta* capitalstock50pc + \epsilon $$
-Thus, the first assumption for receiving th best OLS is valuable.
-
-
-
-
-*Before checking the second assumption, we will review the third one.*
-
-
-#### 3. Assumption:
-
-*The disturbances have the uniform variance and aren't correlated with each other.*
-
-To show that all residuals have the same variance, we have to show that **homoskedasticity** is given. In that case our OLS- estimator will be unbiased and the disturbances will have the same variance. The opposite of homoskedasticity is called **heterooskedasticity**. In that case the OLS estimator would be unbiased and consistent but no longer efficient (Kennedy (2008), Chapter 8).
-
-info("Homoskedasticity & BP-Test") # Run this line (Strg-Enter) to show info
-
-**Task**
-
-Load the package `lmtest` and perform a Breusch-Pagan Test for the variable `ln_tval_pc`and `capitalstock50pc` of the data set `d1`.
-```{r "3___Casual_Effect_of__10"}
-#??
-
-```
-
-The output gives us information about the kind of test which was performed, here `studentized Breusch-Pagan test`, the data which was used and the statistics of the test. `BP` shows the value of the test statistic, `df` the degrees of freedom an `p-value` displays the p-value. 
-
-#! addon__quiz__BP-test
-
-
-With the p-value `0.8196` we won't reject the null hypothesis at a significance level of $\alpha=5$%. Thus, we can assume homoscedastic for our residuals. Perfect! 
-
-Now, we just have to check whether our estimation variables are correlated or not.
-
-info("Correlation") # Run this line (Strg-Enter) to show info
-
-**Task:**
-
-We will now calculate the correlation coefficient between our dependent and explanatory variable. Press `check`. 
-
-```{r "3___Casual_Effect_of__11"}
-cor(d2$ln_tval_pc, d2$capitalstock50pc, use="complete.obs" )
-```
-
-**Question**
-
-#! addon__quiz__Correlation
-
-We have positive correlation. That means, getting higher values for `ln_tval_pc` will lead to higher values for `capitalstock50pc` in average (Hatzinger, Hornik, Nagel (2011), p.278).
-
-Hence, our regression models fulfil the third assumption, the disturbances are uncorrelated and have the same variance. 
-
-#### 2. Assumption: 
-
-*The expected value of the error term is 0.*
-
-$\mathbb{E}(\epsilon)=0$ should hold, meaning the OLS estimator $\hat{\beta}$ is unbiased. 
-We already showed that we have a homoskedasticity regression, thus our OLS estimator is unbiased. We don't have endogenity, we have exogenity.
-
-info("Endogenity and Exogenity") # Run this line (Strg-Enter) to show info
-
-
-
-#### 4. Assumption:
-
-*In repeated samples, the observations of the independent variable can be consider as fixed.*
-
-If you change the disturbance term of all endogenous variable will change simultaneously. Thus, the endogenous variable can't be considered as fixed in repeated sample(c.f. Kennedy (2008), p.171). 
-Since we have exogenity, the fourth assumption holds for our regression.
-
-
-#### 5. Assumption:
-
-*The number of observations is greater than the amount of independent variables.*
-
-Like Kennedy ((2008), p.192) declares in his book, it is nearly impossible to estimate `n` parameters with less than `n` numbers. Thus, the sample size is larger than the number of parameter they are estimating. Therefore assumption five also holds.
-
-
-Our regression model estimates the **best linear unbiased estimator**.
-
-
-## Indicator for having a county with a bank
-
-In the next step we will include an indicator for whether a county has a bank or not. Now we want to estimate how production per person depends on the capital amount of a county. For that we will use the presence of a bank in a county.
-
-**Task:**
-
-First create a new data set d3, based on our data set Dat2. Here we want to take counties with a `capitalstock <= 5` and counties which were included in the predefined value `insample`. Afterwards create a regression where we compare the relationship between `ln_tval_pc` and `banks50c`. Include `year` as fixed effects.
-
-```{r "3___Casual_Effect_of__12"}
-#d3 = ??(Dat2, ??, ??)
-#summary(??(?? ~ ?? | ??, data=d3))
-```
-
-Production per person gets `37%` higher if we use the presence of banks as an indicator. 
-
-Now you have seen three different regression. But how can we compare them to our main equation $Y_{ct}= \gamma_{c} +\gamma_{t}+ \gamma_{e} C^{*}_{ct}/P_{ct}+ \gamma EC_{ct}/P_{ct}+e_{ct}$ (2)?
-
-For comparing our regressions we use the function `stargazer()` from the same named package.
-
-info("stargazer()") # Run this line (Strg-Enter) to show info
-
-Press `check` to compare the results.
-
-```{r "3___Casual_Effect_of__14",results='asis'}
-library(stargazer)
-stargazer(felm(ln_tval_pc ~capitalstock50pc | year, data= d2),
-          felm(ln_tval_pc ~banks50c | year, data=d3),           
-          felm(ln_tval_pc ~banks50c | year, data=d3),        
-          type="html",
-          digits=3,
-          report="vcsp*",
-          omit.stat="ser",
-          model.numbers=FALSE,
-          column.labels=c("Capital>= 50 ", "Capital <=50 ", "Indicator for bank "))
-```
-
-In the first regression we calculated, that the production per person is around `6%` if a bank was added.
-In the second regression we compared the capital stock per capita of counties with a bank of 50.000$ capital and without a bank. Counties with a bank are much more productive, as we calculated the production per person raises about `22%` if a county has at least one bank. This assumption is strengthened by our last regression. Here we have seen that the production per person is `37%` higher by including an indicator, whether the county has a bank or not.
-In these regressions we just included time effects. 
-
-## Exercise 3.1 - Clustering Standard Errors
-<!-- evtl das kapitel weg  -->
-
-Our data is arranged in several groups, formal called *clusters*. Clustered data is characterized by independence across clusters and correlation within clusters [Ullah and Giles, 2017, Chapter 1]. One cluster in our data set is `countynum`, numbers for several counties in the USA. It is possible, that the production per person in counties close to each other is not independent from each other but has a similar value. Thus, we could have geographical correlation. To disclaim such correlation, we will cluster our analysis at the `countynum` level.
-
-Before starting with this exercise, we will load our data from the last exercise again. Just press `edit` and `check`.
-```{r "3_1___Clustering_Sta"}
-Dat2 = read.table("Data2.tab",header = TRUE, sep = "\t")%>%
-     mutate(capitalstock50pc = capitalstock_pc*14755 / 50,insample = insample_allrural & tpop>1000,     L.capitalstock = lag(capitalstock))
-d2 = filter(Dat2, insample, capitalstock<=50, capitalstock50pc <= 5)
-
-```
-
-First, we want to know how many clusters we will have in this analysis.
-
-**Task**
-
-We want to find out the unique quantity of `countynum`. Replace `??` and delete `#`.
-```{r "3_1___Clustering_Sta__2"}
-# length(??(Dat2$??))
-
-```
-
-**Question**
-
-#! addon__quiz__Cluster
-
-As we can see, we have a huge number of clusters in our data. Knowing this, we want to create a regression with `cluster robust standard errors`.
-
-info("Cluster Robust Standard Errors:") # Run this line (Strg-Enter) to show info
-
-
-With the function `felm()` we used before, it is achievable to cluster.
-
-info("Clustering with felm()") # Run this line (Strg-Enter) to show info
-
-We will perform now a regression with clustered standard errors, using our second regression from Exercise 2.1. There we compared the capital stock of counties with a minimum size bank and without a bank. Remember that the response variable is `ln_tval_pc` and the explanatory variable is `capitalstock50pc`. Furthermore, we used the data `d2` and had as fixed effect `year`.
-
-**Task**
-
-Perform a regression with standard errors clustered at the `countynum` level and use `felm()`.  Replace `?` and delete `#`.
-```{r "3_1___Clustering_Sta__5"}
-#summary(felm(ln_tval_pc ~capitalstock50pc | year | 0 | ?? , data=d2))
-
-```
-
-
-
-## Exercise 3.1 - Estimation with Fixed effects
-
-Before starting with this exercise, we have to load the data we used in Exercise 3 first. Press `edit` and `check`.
-
-```{r "3_1___Estimation_wit"}
-library(dplyr)
-Dat2 = read.table("Data2.tab",header = TRUE, sep = "\t")%>%
-     mutate(capitalstock50pc = capitalstock_pc*14755 / 50,insample = insample_allrural & tpop>1000, L.capitalstock = lag(capitalstock))
-d1 = filter(Dat2, capitalstock<=500, !is.na(L.capitalstock), L.capitalstock <=500, capitalstock50pc <= 5,  capitalstock50pc>0, insample)
-d2 = filter(Dat2, insample, capitalstock<=50, capitalstock50pc <= 5) 
-d3 = filter(Dat2, insample, capitalstock<=50)
-```
-
-
-To calculate estimations with fixed effects R offers the package `plm`, a linear model for panel data. We will use the function `plm` out of this package. This function uses the known `lm` function to estimate panel data. But with it we can set estimation models like pooled OLS "pooling", first difference "fd" or fixed effects "within" of which we will make use. The structure of a `plm` function is:
-
-```{r "3_1___Estimation_wit__2",eval=FALSE}
-```
+plm(formula, data, subset, weights, na.action, effect = c("individual", "time", "twoways", "nested"), model = c("within", "random", "ht", "between", "pooling", "fd"))
 
 If you want to learn more about the `plm` package look through the following link:
 
 "https://cran.r-project.org/web/packages/plm/plm.pdf".
 
-In the last exercise we made three estimations with time effects, to check how the adding of a bank to a certain county affects the production per person there. Our result was, that if we add a bank at minimum size to a county, we receive a higher output per person. There we differed between counties which had already a bank and counties without any bank before.
-Now we want to include as well county fixed effects as well, thus all fixed effects of our estimation are included. To do this we use `plm`. 
+In the last exercises we made three estimations with time effects, to check how the adding of a bank to a certain county affects the production per person there. Our result was, that if we add a bank at minimum size to a county, we receive a higher output per person. There we differed between counties which had already a bank and counties without any bank before.
+Now we want to include county fixed effects as well, thus all fixed effects of our estimation are included. To do this we use `plm`. 
 Let's start with our first regression, where we just use counties that have at least one bank.
 
 **Task**
 
 Use the `plm`-function to estimate the effect between `ln_tval_pc` and `capitalstock50pc`. Since we want fixed effects to be included, use `model="within"` and `effect="twoways"`. Make use of our predefined data set `d1`.
 
-```{r "3_1___Estimation_wit__3",results='asis'}
+```{r "3_3____Effect_of_Con__6",results='asis'}
 #library(plm)
 #plm1 =(??(??~ capitalstock50pc + factor(year), model="??", effect="twoways",data = d1))
 #stargazer(plm1, type="html", digits=3, report="vcsp*", omit.stat="ser", model.numbers=FALSE))
 ```
 
-Including fixed effects leads to a higher output per person for about `2.4%` when adding a minimum size bank to a county with at least one bank. Comparing the result to our result without fixed effect of `6%`, that means much less production per person. This can be explained by respecting that "banks are attracted to more productive areas", like Fullford says. 
+info("stargazer()") # Run this line (Strg-Enter) to show info
+
+Including fixed effects leads to a higher output per person for about `2.4%` when adding a minimum size bank to a county with at least one bank. Comparing the result to our result without fixed effect of `6%`, that means much less production per person. This can be explained by respecting that "banks are attracted to more productive areas", like Fulford says. 
 
 In the next step we will estimate how much more output a county will get by adding a bank, independent if they had a bank before or not. We will include fixed effects and then compare our result to the one without any effects. I will use again `plm` for the estimation and `stargazer` to compare the results. 
 
@@ -771,7 +693,7 @@ In the next step we will estimate how much more output a county will get by addi
 
 Delete `#` and press `check`.
 
-```{r "3_1___Estimation_wit__4",results='asis'}
+```{r "3_3____Effect_of_Con__8",results='asis'}
 #stargazer(plm(ln_tval_pc~ capitalstock50pc + factor(year), model="within", effect="twoways", data =d2), felm(ln_tval_pc ~capitalstock50pc | year, data= d2),type="html", digits=3, report="vcsp*", omit.stat="ser", model.numbers=FALSE)
 ```
 
@@ -787,13 +709,13 @@ In the last step we repeat this procedure to our last regression.
 
 Delete `#` and press `check`
 
-```{r "3_1___Estimation_wit__5",results='asis'}
+```{r "3_3____Effect_of_Con__9",results='asis'}
 #stargazer(plm(ln_tval_pc~ banks50c + factor(year), model="within", effect="twoways", data =d3), felm(ln_tval_pc ~banks50c | year, data= d3),type="html", digits=3, report="vcsp*", omit.stat="ser", model.numbers=FALSE)
 ```
 
 Using an indicator for banks and including fixed effects, counties with a bank will have around `11.5%` more production per person than counties without a bank. Since endogeneity is important we must include the fixed effects, which leads to lower estimate results. 
 
-Perfect! We have already seen that gaining a national bank helps a county to get a higher production per person. I will summarise our results in the following table.
+Perfect! We have already seen that gaining a national bank helps a county to get a higher production per person. I will summarize our results in the following table. Be aware that they all show the endogenous effect of entry.
 
 <style>
 .mytable {
@@ -857,17 +779,51 @@ Perfect! We have already seen that gaining a national bank helps a county to get
   <tr>
   </table>
 
+## Exercise 3.4. - Solving the Endogeneity Problem
 
-## Exercise 4. - Estimation with conditional mean
+In our regression model 
 
-In this section I will show you, how to estimate with conditional mean to get a less sensitive estimation. 
+$$Y^{*}_{ct} = \gamma_{c} + \gamma_{t} + \gamma_{e}C^{*}_{ct}/P_{ct}+U^{*}_{ct} (1)$$
 
-Remember our equation
+we have an endogeneity problem. The variable $C^{*}_{ct}/P_{ct}$ is an endogenous explanatory variable, meaning it correlates with the error term $U^{*}_{ct}$. Thus, we will receive an inconsistent and biased estimator $\hat{\beta}$, because $\mathbb{E}((C^{*}_{ct}/P_{ct})'U^{*}_{ct}) !=0$ (Winker (2007), p.177). 
 
-$Y_{ct}= \gamma_{c} +\gamma_{t}+ \gamma_{e} C^{*}_{ct}/P_{ct}+ \gamma EC_{ct}/P_{ct}+e_{ct}$.
+As the aim of every economist is to deduce that one variable has a casual effect on another variable, we must solve this endogeneity problem.
+
+Fulford explains that the minimum size requirement leads to counties with too much banking and to other counties with too little. This effect can be measured by the *excess capital*. We define it in the following way:
+
+$$\mathbb{E}(C_{ct})= C_{ct}-C^{*}_{ct}.$$
+Excess capital will be positive, if a national bank enter with a capital size higher than their optimal capital stock. It will be negative, if these banks denier entry on minimum capital stock. 
+
+Excess capital doesn't depend on the strategy of the banks, like the capital stock size in our regression model (1). Maybe this variable can help us to get exogeneity.
+
+First, we will define the effect on the outcome of the minimum size regulation by using the excess capital. We take the difference between the outcome with the rule $Y_{ct}$ and the outcome without the rule $Y^{*}_{ct}$:
+
+$$Y_{ct} - Y^{*}_{ct} = \gamma \mathbb{E}(C_{ct}/P_{ct})+U_{ct} (2), $$
+where $\gamma$ displays the effect of the minimum size requirement. It measures the effect, if areas are forced to have more or less banking because of the requirement. In that sense, $\gamma$ is a casual effect. 
+
+If we could now combine (2) in our regression model (1), we could estimate $\gamma$ as well es the endogenous effect $\gamma_{e}$. We will get the new equation:
+
+$$Y_{ct} = \gamma_{c} + \gamma_{t} + \gamma_{e} C_{ct}^{*}/P_{ct} + \gamma \mathbb{E}(C_{ct}/P_{ct}) + e_{ct} (3)$$
+
+To receive the causal effect of this equation, we have to know what banks actually want to do $Y^{*}$. But we can't observe this, thus we will normally still have endogeneity in the new regression model (3). Fulford explains in his paper how to handle this problem. 
+
+> The standard sharp regression discontinuity result that $\gamma$ is identified hold as long as the density of $e$ conditional on $C^{*}$ is continous (Hahn, Todd & KLaaus, 2011; Imbens & Lemieux, 2008). A regression discontinuity does not require $C^{*}$ to be uncorrelated with $e$ since identificiation of the causal effect $\gamma$ is coming from the jump in $\mathbb{E}C$, which is a function of $C^{*}$. 
+>
+
+Under this assumption we can define the equation (3) as our new regression model, where $\gamma$ is the causal effect. Thus, we want now to regress log production per person on $C_{ct}^{*}/P_{ct}$ and $\mathbb{E}(C_{ct}/P_{ct})$. Our focus then will be on the estimator for the excess capital $\gamma$. In our next exercise, we try to estimate (3) by using the conditional mean.
 
 
-The main problem here was that we couldn't observe the optimal capital stock $C_{ct}^{*}$. Yet we will calculate the mean optimal capital stock from the density for each county-decade $C_{ct}^{*^{mean}}$ and then replacing $C_{ct}^{*}$ with it. First we have to check whether estimating on this way will lead to the right estimation of $\gamma$. 
+
+## Exercise 5. - Estimation with Conditional Mean
+
+
+In the last exercise we settled up our regression model as:
+
+$$Y_{ct} = \gamma_{c} + \gamma_{t} + \gamma_{e} C_{ct}^{*}/P_{ct} + \gamma \mathbb{E}(C_{ct}/P_{ct}) + e_{ct}.$$
+Our aim is to regress the effect of the minimum size requirement $\gamma$. Therefore, we have to calculate the excess capital, $$\mathbb{E}(C_{ct})= C_{ct}-C^{*}_{ct}$$ divided by the average population at the time $t$ in the county $c$. 
+
+
+First, we calculate the mean optimal capital stock for each county-decade $C_{ct}^{*^{mean}}$ and then replace the unobserved optimal capital stock $C_{ct}^{*}$ with it. Then we can also calculate the mean excess capital $\mathbb{E}(C_{ct})^{mean}$ for each county-decade. Before, we have to check whether estimating on this way will lead to the right estimation of $\gamma$. 
 
 What conditions do we have to fulfill?
 
@@ -877,14 +833,14 @@ What conditions do we have to fulfill?
 
 With this assumptions, we can use conditional mean for our estimations.
 
-Since our data set is huge and has a lot of missing values, I will show you how to estimate with conditional mean with a smaller sample. Afterwards I will present the results from Fulford for the whole data set. He uses multiple imputations to fill the missing values with simulated values. If you are interested in the concrete way, please have a look at the Stata-Code from the file "National_bank_analysis3.do" which you can find here: 
+Since our data set is huge and has a lot of missing values, I will show you how to estimate with conditional mean with a smaller sample. Afterwards I will present the results from Fulford for the whole data set. He uses multiple imputations to fill the missing values with simulated values. Then he calculates for each county and each decade the mean optimal capital stock and the mean excess capital and estimates the regression by using this means. If you are interested in the concrete way, please have a look at the Stata-Code from the file "National_bank_analysis3.do" which you can find here: 
 https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/PQ6ILM.
 
 
 
 We will just look at the state `Mississippi`, which contains only rural counties and was also one of the state under the CSA during the civil war. Have a look where Mississippi is located. Press `check`.
 
-```{r "4____Estimation_with"}
+```{r "5____Estimation_with"}
 require(maps)
 library(maps)
 Mis = c("mississippi")
@@ -895,27 +851,27 @@ First, we will not include information  about 1902 in our estimation. I calculat
 
 **Task:**
 
-Read in the data set `Mississippi.tab`. Find the mistake in the following code and delete `#`.
+Read in the data set `Mississippi.csv`. Find the mistake in the following code and delete `#`.
 
-```{r "4____Estimation_with__2"}
+```{r "5____Estimation_with__2"}
 # Mississippi = open.csv("Mississippi.csv", header=TRUE, sep="\t")
 ```
 
 
+Great! In the next step we will look at our new created mean variables. `Mopt_capital_pc` displays the mean of the optimal capital amount. Notice that the mean is calculated for each county and each decade. `Mexcess_capital_pc` shows the mean excess capital for each county and each decade. Excess capital displays the difference between the actual capital stock and the optimal capital stock, $\mathbb{E}(C_{ct})= C_{ct} - C_{ct}^{*}$. Press `check` to get a small overview of these variables.
 
-Great! In the next step we will have a look at our new created mean variables. `Mopt_capital_pc` displays the mean of the optimal capital amount. Notice that the mean is calculated for each county and each decade. `Mexcess_capital_pc` shows the mean excess capital for each county and each decade. Excess capital displays the difference between the actual capital stock and the optimal capital stock, $EC_{ct}= C_{ct} - C_{ct}^{*}$. Press `check` to get a small overview of these variables.
-
-```{r "4____Estimation_with__3"}
+```{r "5____Estimation_with__3"}
 set.seed(50)  #setting a seed to get always the same random sample
 sample_n(select(Mississippi, year, countyname, Mexcess_capital_pc, Mopt_capital_pc, capitalstock50pc),10)
 ```
 
-Have a look at the first line of our output. The national banks in the county `Prentiss` had in `1890` a capital stock of `0`, meaning there was no national bank in Prentiss at this time. Thus the mean excess capital amount is $42900000-0 = -4290000$, as shown in the table. As you can see, the shown counties didn't had a national bank during the displayed period. We want to check now, how many counties had a national bank in Mississippi during the observed period. Be aware that some values are missing, and that for each county we have data for each decade. 
+Please have a look at the first line of our output. The national banks in the county `Prentiss` had in `1890` a capital stock of `0`, meaning there was no national bank at this time. Thus, the mean excess capital amount is $0-42900000 = -4290000$, as shown in the table. You can see, the shown counties didn't had a national bank during the displayed period. We want to check, how many counties had a national bank in Mississippi during the observed period. Be aware that some values are missing and that we have data for each decade from 1870 to 1900. 
 
 **Task:**
-`capitalstock50pc` shows the capital stock normalized by the average population of 14755 during this period in a county. Thus, if it is `0` we know, that a county didn't had a national bank. If it is something positive, we know that the county had national banks, which opened with a specific capital stock. How can you check, how many counties in `Mississippi` didn't had a national bank in our sample? Try to work with the variable `capitalstock50pc`.
 
-```{r "4____Estimation_with__4"}
+`capitalstock50pc` shows the capital stock normalized by the average population of 14755 during this period in a county. Thus, if it is `0` we know, that a county didn't had a national bank. If it is something positive, we know that the county had national banks, which opened with a specific capital stock. Try to check how many counties in `Mississippi` didn't had a national bank in our sample. Use the variable `capitalstock50pc`.
+
+```{r "5____Estimation_with__4"}
 #??(Mississippi$capitalstock50pc)
 ```
 
@@ -923,37 +879,39 @@ Have a look at the first line of our output. The national banks in the county `P
 
 #! addon__quiz__NumberOfUnbankedCounties
 
-In Mississippi not many counties could afford a national bank during the period of 1870 to 1900. Maybe they were restricted by the minimum capital stock size of 50.000$ or they didn't had capital at all to open national banks.
-Nevertheless we will make estimations with conditional mean to check how extra banking could have affect the development in Mississippi.
+In Mississippi many counties couldn't afford a national bank during the period of 1870 to 1900. Maybe they were restricted by the minimum capital stock size of 50.000$ or their optimal capital stock was far away of the requirement size..
+Nevertheless, we will make estimations with conditional mean to check how extra banking could have effected the development in Mississippi.
 
-We will do the estimations on basis of a one-period lag. On this way we can suggest continuing growth effects and not just single-level effects. To do that, we have to define the lags for our important variables `Mopt_capital_pc` and `Mexcess_capital_pc`. Furthermore, we will use in all regressions time and county fixed effects. Normally we would also cluster for states, but since we just look at the state Mississippi we can skip this step.
+We will do the estimations on basis of a one-period lag. On this way we can suggest continuing growth effects and not just single level effects. We must define the lags for our important variables `Mopt_capital_pc` and `Mexcess_capital_pc`. Furthermore, we will use in all regressions time and county fixed effects. Normally we would also cluster for states, but since we just look at the state Mississippi we just have one cluster and can skip this step.
 
-Let's start by defining the lag-variables. Just press `check`.
+Let's start to define the lag-variables. Just press `check`.
 
-```{r "4____Estimation_with__5"}
+```{r "5____Estimation_with__5"}
 Mississippi = mutate(Mississippi, 
                      LMopt_capital_pc=lag(Mopt_capital_pc), LMexcess_capital_pc= lag(Mexcess_capital_pc))
 ```
 
 
-Perfect! Now we can start with the first estimation, where we check the log total production value per capital in Mississippi.
+Perfect! Now we can start with the first estimation, where we want to check the log total production value per capital in Mississippi.
 
 **Task:**
-Create an estimation for `ln_tval_pc ~ LMopt_capital_pc + LMexcess_capital_pc` with `felm`. County and time fixed effects should be included. Delete `#` and replace `??`.
-```{r "4____Estimation_with__6"}
-#summary(??(ln_tval_pc ~ LMopt_capital_pc + ??|year+countynum, data=Mississippi))
 
+Create an estimation for `ln_tval_pc ~ LMopt_capital_pc + LMexcess_capital_pc` with `felm`. County and time fixed effects should be included. Delete `#` and replace `??`.
+
+```{r "5____Estimation_with__6"}
+#summary(??(ln_tval_pc ~ LMopt_capital_pc + ??|year+countynum, data=Mississippi))
 ```
 
-The important variable in this estimation is `LMexcess_capital_pc`. It shows us, how much extra banking would effect the production per person including a one-period lag. Thus, opening a national bank in Mississippi would increase production per person for about `12.3%`.
+Our aim was to calculate the mean excess capital to get an unbiased estimator. Thus, the important variable in this estimation is `LMexcess_capital_pc`. It shows us, how much extra banking would affect the production per person including a one-period lag. Thus, opening a national bank in Mississippi would increase production per person about `12.3%`.
 
-What about `LMopt_capital_pc`? This variable displays the mean optimal capital stock over all decades and all counties in Mississippi. In our estimation it shows the impact of optimal capital stock per capita. Thus, the coefficient on optimal capital per person in Mississippi is about `26.7%`. 
+What about `LMopt_capital_pc`? This variable displays the mean optimal capital stock over all decades and all counties in Mississippi. In our estimation it shows the impact of optimal capital stock per capita. Thus, the coefficient of the optimal capital per person in Mississippi is about `26.7%`. 
 
-We checked how opening a national bank in Mississippi effects the total production per capita. But total production can be separated in manufacturing and agriculture. Let's first check the effect of manufacturing production.
+We checked how opening a national bank in Mississippi effects the total production per capita. But we can separate total production in manufacturing and agriculture. Let's check the effect of manufacturing production.
 
 **Task:**
-In the following I show you a code how to measure the above described effect. Check the code and find the mistake.
-```{r "4____Estimation_with__7"}
+
+In the following I show you how to measure the effect of manufacture. Check the code and find the mistake.
+```{r "5____Estimation_with__7"}
 #summary(felm(ln_manuf_val_pc + LMopt_capital_pc + LMexcess_capital_pc|year+countynum, data=Mississippi))
 
 ```
@@ -962,19 +920,23 @@ In the following I show you a code how to measure the above described effect. Ch
 
 #! addon__quiz__EffectManufacturing
 
-Now we want to compare, how the effect of banking is for farm production. Press `check`.
+Now we want to compare, how banking effects farm production. Press `check`.
 
-```{r "4____Estimation_with__8"}
+```{r "5____Estimation_with__8"}
 summary(felm(ln_farmprod_val_pc ~ LMopt_capital_pc + LMexcess_capital_pc|year+countynum, data=Mississippi))
 ```
 
-Gaining a national bank in Mississippi leads to a negative result for farm production in Mississippi. How could this be? First, remember that national banks couldn't lend land and the only way to help agriculture was to provide capital to farmers. As we have seen before, there hasn't been many national banks in Mississippi, thus farmer couldn't be promoted by them. Second, the manufacturing could have played a more important role in Mississippi than agriculture. Thus, national bank would have more support manufacturing production.
+Gaining a national bank in Mississippi leads to a negative result for farm production in Mississippi. How could this be? First, remember that national banks couldn't lend land and the only way to help agriculture was to provide capital to farmers. As we have seen before there haven't been many national banks in Mississippi, thus farmer couldn't be promoted by them. Second, the manufacturing could have played a more important role in Mississippi than agriculture. Thus, national banks in Mississippi would have more support manufacturing production.
 
-In the whole analysis we didn't took notice of the reduced minimal capital stock requirement from 1900. Now, we want to include this information. Therefore, we have to read in a data set with information about 1902. Afterwards we will calculate the needed lags again. Remember that this new rule was published in 1900, but the effect of this change are documented in our data set in the year of 1902.
+#### Reduced minimum capital stock from 50.000$ to 25.000$
+
+In the whole analysis we didn't took notice of the reduced minimal capital stock requirement from 1900. Now, we want to include this information. Therefore, we read in a data set with information about 1902. Afterwards we will calculate the needed lags again. Remember that this new rule was published in 1900, but the effect of this change is documented in our data set in the year of 1902.
+
+**Task:**
 
 Press `check`.
 
-```{r "4____Estimation_with__9"}
+```{r "5____Estimation_with__9"}
 #load file
 Mississippi1902 = read.csv("Mississippi25.csv", header=TRUE, sep="\t")
 #create new variables
@@ -987,23 +949,31 @@ Let's start again to estimate the banking effect on the total production per cap
 **Task:**
 
 Create a regression for `ln_tval_pc ~ LMopt_capital_pc + LMexcess_capital_pc`. Year and county fixed effects should be included. Use again `felm` for the estimation. Delete `#` and replace `??`.  
-```{r "4____Estimation_with__10"}
+```{r "5____Estimation_with__10"}
 #summary(??(ln_tval_pc ~ LMopt_capital_pc + LMexcess_capital_pc| ?? + countynum, data=Mississippi1902))
 
 ```
 
-Including the information about 1902, the total production per person increases for about `20.77%` if opening a new national bank in Mississippi. Since `20.77% > 12.3%`, the new lower minimum capital requirement of 25.000$ introduced in 1900 has a higher effect on the production than before. We can assume that a lot of national banks were constrained by the minimum size of 50.000$ and couldn't open a bank in Mississippi before the minimum stock was reduced. In the following we check the effect for manufacturing and farm production including the information from 1902. I will give you the code, just press `check`.
+Including the information about 1902, the total production per person increases for about `20.77%` if opening a new national bank in Mississippi. Compare the result to the one where `50.000$` was the minimum size (12.3%). Since `20.77% > 12.3%`, the new lower minimum capital requirement of 25.000$ introduced in 1900 has a higher effect on the production than before. We can assume that a lot of national banks were constrained by the minimum size of 50.000$ and couldn't open a bank in Mississippi before the minimum stock was reduced. In the following we check the effect for manufacturing and farm production including the information from 1902. I will give you the code, just press `check`.
 
-```{r "4____Estimation_with__11"}
+```{r "5____Estimation_with__11"}
+#Manufacture
 summary(felm(ln_manuf_val_pc ~ LMopt_capital_pc + LMexcess_capital_pc| year + countynum, data=Mississippi1902))
+```
+
+```{r "5____Estimation_with__12"}
+#Agriculture
 summary(felm(ln_farmprod_val_pc ~ LMopt_capital_pc + LMexcess_capital_pc| year + countynum, data=Mississippi1902))
 ```
 
-The increment of manufacturing is with the information of 1902 around `5.86%`, without the information it was `6.2%`. The result for the improvement of farm production per person is still negative but is now higher than before `-13,3% < -7.75%`. 
+The increment of manufacturing in Mississippi is with the information of 1902 around `5.86%`, without the information it was `6.2%`. The result for the improvement of farm production per person is still negative but is now higher than before `-13,3% < -7.75%`. 
 
-How can we interpret this result? Before the minimum capital stock were lowered, we assumed that Mississippi focused on manufacturing rather than on agriculture. With the information about the 25.000$ capital stock requirement, we can see that they still promote industrialization but also focus now on farm production. The number of national banks raised, thus they had more working capital for farmers as well. Therefore the farm production could increase. But after all, we can still assume that Mississippi was a state of manufacturing. 
+How can we interpret this result? Before the minimum capital stock was lowered, we assumed that Mississippi focused on manufacturing rather than on agriculture. With the information about the 25.000$ capital stock requirement, we can see that they still promote industrialization but also focus now on farm production. The number of national banks raised, thus they had more working capital for farmers as well. Therefore, the farm production could increase. But after all, we can still assume that Mississippi was a state of manufacture. 
 
-Mississippi is a small state in the United States. Thus we can't make a conclusion for the whole USA based in our analysis. Since Fullford did the analysis for the whole country by using the county conditional mean, we will take a look at his results. You can find the following shown results in his paper on page 934. Notice that a one-period lag and information about 1902 are included. Furthermore, year and county fixed effects are respected. Excess capital and optimal capital per capita are measured again in units of 50.000$ per average population of 14.755, thus they show the effect of adding a bank of minimum size to a county. Be aware that just rural counties are included in the estimation.
+
+#### Estimation with conditional mean for the whole United States
+
+Mississippi is a small state in the United States. Thus, we can't make a conclusion for the whole USA based in our analysis. Since Fulford did the analysis for the whole country by using the county conditional mean, we will take a look at his results. You can find the following shown results in his paper on page 934. Notice that a one-period lag and information about 1902 are included. Furthermore, year and county fixed effects are respected. Excess capital and optimal capital per capita are measured again in units of 50.000$ per average population of 14.755. Thus, they show the effect of adding a bank of minimum size to a county. Be aware that just rural counties are included in the estimation.
 
 
 <style>
@@ -1058,25 +1028,32 @@ Study the table and try to answer the following questions.
 #! addon__quiz__Table2
 
 
-Great! Extra banking with minimum capital stock would increase total production per person for about `9.87%`. The impact of optimal capital stock per capita lays here around `3.45%`, which is very close to our result in Exercise 3 (first regression with fixed effect, calculating the effect for counties with at least one bank). Thus, the effect of gaining a minimum size banks is substantially larger than the endogenous effect how Fullford claims. Knowing this, we can also suggest that the pure entry effect of a national bank is really large. 
+Extra banking with minimum capital stock would increase total production per person for about `9.87%`. The impact of optimal capital stock per capita lays here around `3.45%`, which is very close to our result in Exercise 3.2. Thus, the effect of gaining a minimum size bank is substantially larger than the endogenous effect that Fulford claims. Knowing this, we can also suggest that the pure entry effect of a national bank is really large. 
 
-If we compare the effect of manufacturing per person being around `5.82%` and effect on the farm production of `13.16%`, we can assume that the increase of total production per person is the result of the high increase of farm production per person. In the analysis counties with major cities are excluded. In such areas manufacturing played a bigger role than in rural counties, and we can assume that in such counties national banks may have promoted manufacturing more. All in all, we can claim that national banks increased production per capita compared to unbanked counties.
+If we compare the effect of manufacturing per person being around `5.82%` and effect on the farm production of `13.16%`, we can assume that the increase of total production per person is the result of the high increase of farm production per person. The analysis excludes counties with major cities. In this areas manufacturing played a higher role than in rural counties. Therefore, we can assume that in such counties national banks may have promoted manufacturing more. All in all, we can claim that national banks increased production per capita compared to unbanked counties.
+
+How can we compare these results to our regression equation
+
+$$Y_{ct} = \gamma_{c} + \gamma_{t} + \gamma_{e} C_{ct}^{*}/P_{ct} + \gamma \mathbb{E}(C_{ct}/P_{ct}) + e_{ct}?$$
+
+We already stated that $\gamma_{e}$ generates the endogenous effect of our model. To prevent endogeneity we found out that we can make use of the expected capital stock $$\mathbb{E}(C_{ct)$$ and will get the causal effect $\gamma$. In this exercise, I showed you how to make use of conditional mean to estimate our regression model properly. We received the unbiased estimator for $\gamma$ and can now conclude that **banking with minimum capital stock increased the total production per person in times of economical growth for about $10%$.**
 
 
 
-## Exercise 5. Robustness Check
 
-Robustness checks play an important role in the regression analysis. While regression analysis tries to find the relationship between a dependent variable and one ore more independent variables, robustness checks tries to figure out if the regression model is robust to changes. It will check how the conclusions change when the assumption changes.
+## Exercise 6. Robustness Check
 
-In this exercise we will check our results for robustness. Therefore we will restrict our sample in various ways.
+Robustness checks play an important role in the regression analysis. While regression analysis tries to find the relationship between a dependent variable and one or more explanatory variables, robustness checks try to figure out if the regression model is robust to changes. It will check how the conclusions change when the assumption changes.
+
+In this exercise we will check our results for robustness. Therefore, we will restrict our sample in various ways.
 
 ### Not including 1902
 
-One thing we have to worry about, is that counties who are far away from getting a bank can influence the results. The information from 1902 about banking with the lower minimum capital stock of 25.000$, gives us an overview of the distribution of optimal capital for counties with no banks. Not using the informations from 1902 displays how the functional form of our estimation is responsible for the results.
+One thing we must take care, is that counties who are far away from getting a bank can influence the results. The information from 1902 about banking with the lower minimum capital stock of 25.000$, gives us an overview of the distribution of optimal capital for counties with no banks. Without using the information from 1902 we see how the functional form of our estimation is responsible for the results.
 
-In Exercise 4 we estimated the dependence between production per person and banking in Mississippi. Once we used the informations from 1902 and one time didn't included them. We will now compare the results. First, load again the data set. Find the two mistakes in the following code.  
+In Exercise 5 we estimated the dependence between production per person and banking in Mississippi. Once we used the information from 1902 and one time we excluded them. We will now compare the results. First, load again the data set. Find the two mistakes in the following code.  
 
-```{r "5__Robustness_Check"}
+```{r "6__Robustness_Check"}
 #Data without information from 1902:
 
 #Mississippi = read.csv("Mississippi.csv", header=TRUE, sep="\t")+
@@ -1091,17 +1068,17 @@ In Exercise 4 we estimated the dependence between production per person and bank
 
 **Task:**
 
-Compare the results of the estimation `ln_tval_pc ~ LMopt_capital_pc + LMexcess_capital_pc`, once using informations from 1902 and once not. Delete `#` and replace `??`.
+Compare the results of the estimation `ln_tval_pc ~ LMopt_capital_pc + LMexcess_capital_pc`, once using information from 1902 and once not. Delete `#` and replace `??`.
 
-```{r "5__Robustness_Check__2",results='asis'}
+```{r "6__Robustness_Check__2",results='asis'}
 #??(felm(ln_tval_pc ~ LMopt_capital_pc + LMexcess_capital_pc|year+countynum, data=Mississippi),           felm(ln_tval_pc ~ LMopt_capital_pc + LMexcess_capital_pc|year+countynum, data=Mississippi1902), type="html", digits=3, report="vcsp*", omit.stat="ser", model.numbers=FALSE, column.labels=c("Not including 1902 ", "Including 1902 "))
 ```
 
 
 
-The estimation result with the information of 1902 is higher then without it. Not using the information of 1902, counties with no bank could be anywhere below $C^{T}$, the optimal capital. Maybe they are very near to gaining $C^{T}$ and restricted by the requirement of opening a national bank. But maybe they are far away of the optimal capital and wouldn't even open a national bank, if there hasn't been the capital stock requirement. Including now the extra informations from 1902, we can claim that counties without a bank are even more far away of gaining a national bank since their capital stock must be now smaller than $C^{T}_{25}$, the optimal capital with the 25.000$ minimum capital stock rule. These counties are now far away of the entry point and don't influence our result anymore. We can suggest now that the estimation is robust.
+The estimation result with the information of 1902 is higher than without it. Not using the information of 1902, counties with no bank could be anywhere below $C^{*}$, the optimal capital. Maybe they are very near to gaining $C^{*}$ and restricted by the requirement of opening a national bank. But maybe they are far away of the optimal capital and wouldn't even open a national bank, if there hasn't been the capital stock requirement. Including the extra information from 1902, we can claim that counties without a bank are even more far away of gaining a national bank since their capital stock must be now smaller than $C^{*}_{25}$, the optimal capital with the 25.000$ minimum capital stock rule. These counties are now far away from the entry point and don't influence our result anymore. We can suggest now that the estimation is robust.
 
-We want to check robustness also for our whole data set and thus for the estimation results for the whole USA. Therefore we will have a look at the results of Fullford, which you can find on page 935 in his paper. In the estimation there are just `rural counties` included and and `one-period lags`. Furthermore, I will just display the result for the `mean excess capital per capita`.
+We want to check robustness also for our whole data set and for the estimation results for the whole USA. Therefore, we will look at the results of Fulford, which you can find on page 935 in his paper. In the estimation there are just `rural counties` included and `one-period lags`.Here are the results for the `mean excess capital per capita`.
 
 <style>
 .mytable {
@@ -1148,16 +1125,20 @@ We want to check robustness also for our whole data set and thus for the estimat
   </table>
   
 
-Study the table. Comparing the results between including 1902 and not, we see that they nearly didn't change. We can claim the same things as for the Mississippi estimation. The counties with no banks will be even more far away from the entry point including information of 1902, than not. Thus, many of them will not be included in the estimation when using 1902. The amount of included counties in this case is smaller compared to not using 1902. That means, the estimation with not using 1902 has more counties included with no precise information about them. But still this will not change the results. The estimation approach is robust.
+Study the table. Comparing the results between including 1902 and not, we see that they nearly didn't change. We can claim the same things as for the Mississippi estimation. The counties with no banks will be even more far away from the entry point including information of 1902, than not. Thus, many of them won't be included in the estimation when using 1902. The number of included counties in this case is smaller compared to not using 1902. That means, the estimation with not using 1902 has more counties included with no precise information about them. But this still won't change the results. The estimation approach is robust.
 
 
 ### Excluding the South
 
 In our estimations we always used rural counties and excluded counties with major cities. But the rural counties can also be separated in union rural counties and not union rural counties. 
 
-After the civil was finished, the states of the CSA were again taken over by the USA. But they were really poor after the war, and a lot of people there had to die during the war. Thus, the population were there on a minimum. Furthermore, they were really poor banked. Remember our analysis from Mississippi, which was not a union state, there we saw that the state had a lot of unbanked counties. Our estimation could be influenced by this poorly banked states in the `South`. Also, there were some counties in the `West` with a low number of banks and a small population, compared to the counties in the `North` and `Mid-West`. Thus, we want to check the results by excluding the South and the West and just take the union rural states in the sample. Have a look, at the union states on the following map. Press `check`.
+After the civil war was finished, the states of the CSA were again taken over by the USA. But the CSA lost a lot of people during the war and consequently became poor . Thus, the population were there on a minimum. Furthermore, they were poorly banked. Remember our analysis from Mississippi, which wasn't a union state. There we saw that the state had a lot of unbanked counties. Our estimation could be influenced by these poorly banked states in the `South`. Also, there were some counties in the `West` with a low number of banks and a small population, compared to the counties in the `North` and `Mid-West`. Thus, we want to check the results by excluding the South and the West and just take the union rural states in the sample. Have a look, at the union states on the following map. 
 
-```{r "5__Robustness_Check__3"}
+**Task:**
+
+Press `check`.
+
+```{r "6__Robustness_Check__3"}
 require(maps)
 library(maps)
 Union = c("california", "connecticut", "delaware", "illinois", "indiana", "iowa", "kansas", "kentucky", "maine", "maryland", "massachusetts", "michigan", "minnesota", "missouri", "nevada", "new hampshire", "new jersey", "new york", "ohio", "oregon", "pennsylvania", "rhode island", "vermont", "west virginia", "wisconsin")
@@ -1167,8 +1148,7 @@ map(database = "state", col = c("white", "blue")[1+(map(database = "state", col 
 
 
 
-
-Therefore, we look at the results of the estimation with conditional mean just using union rural counties, as Fullford displayed.
+We take the results of the estimation with conditional mean just using union rural counties, as Fulford displayed.
 
 <style>
 .mytable {
@@ -1214,53 +1194,67 @@ Therefore, we look at the results of the estimation with conditional mean just u
   <tr>
   </table>
 
-As you can compare the upper table, the results excluding the South nearly didn't change.
+As you can compare the upper table (10.1% using 1902 and 11.1% not using 1902), the results excluding the South didn't change nearly.   
 
 **Question:**
 #! addon__quiz__Robustness
 
-Compare as well the result above, between including informations from 1902 and not. Again, the results largely unchanged and the robustness we claimed before is holding for only union states as well.
-
-
-### State Banks
-
-Our estimation shows the effect of minimum size banking of national banks. But the effect of providing services of a national banks is not necessarily the effect of any access to banking, like Fullford presents. 
-National banks weren't the only financial institutes in the United States during the period of 1870 to 1900. There also have been state banks. With the establishment of national banks the number of state banks decreased to a minimum. Until the late 1880s there were just a few state banks left. This means during this time our estimation couldn't be effected of state banks, since there were too few of them. But after 1890 many state banks entered and were in real competition with national banks. State banks weren't restricted by the minimum capital stock requirement. Thus, they could offer lower capital stock requirements and enter places where national banks couldn't. Since the minimum capital stock requirements of state banks weren't uniform, they were able to offer low minimums to places with no bank. Therefore, such counties were able to get banking somehow. Low state bank minimums were provided in unattractive areas for banking and weren't a real competition there for national banks. Still, our regression approach is robust.
+Compare the result above, between including information from 1902 and not. E.g. for manufacturing production using information from 1902 leads to a higher output of `10.56%`, not using the information lead to `10.31%` output increase. Again, the results largely unchanged and the robustness we claimed before is holding for only union states as well. 
 
 
 
-## Exercise 6. Conclusion
+## Exercise 7. Conclusion
 
-We are all used to online banking and getting our money where and when we want to. But in the past it wasn't easy like today. The aim of banks was to provide exchange and to make commerce more easy. They tried to connect places financially.
+We are all used to online banking and getting our money where and when we want to. Though in the past it wasn't easy like today. The aim of the banks was to provide money exchange and to make commerce easier. Furthermore, they tried to connect places financially.
 
-National banks played an important role in the payment system. They could provide loans and currency in form of national notes. Thus, the exchange of good got comfortable and more simple. They couldn't do long-term loans but could provide working capital to farmers and producers. We found out that the presence of a national bank in an rural county increased production per capita by `10%`. Thus, we can claim that providing working capital played a important role in a growing economy rather then providing debit. Furthermore, we saw that national banks promoted both manufacturing and farm production. Since the United States during the analysed period could be compared to today developing countries, we can assume that the services of national banking played an important role in the development of the USA. Like Fullford says, "Facilitating a payments system, providing working capital, and funding goods in transit are key functions of banks during periods of growth and development".
+National banks played an important role in the payment system. They could provide loans and currency in form of national notes. Thus, the exchange of goods got comfortable and more simple. They couldn't do long-term loans but could provide working capital to farmers and producers. We found out that the presence of a national bank in a rural county increased production per capita by `10%`. Thus, we can claim that providing working capital played an important role in a growing economy rather than providing debit. Furthermore, we saw that national banks promoted both manufacturing and farm production. Since the United States during the analysed period could be compared to today developing countries, we can assume that the services of national banking played an important role in the development of the USA. Like Fulford (2015, p. 937) says, "Facilitating a payments system, providing working capital, and funding goods in transit are key functions of banks during periods of growth and development".
 
 
-Finally, you can display all awards that you collected in this problem set. Just press `edit` and `check` afterwards. The maximum number of achievable awards is #nummer einfugen.
+Finally, you can display all awards that you collected in this problem set. Just press `edit` and `check` afterwards. The maximum number of achievable awards is `12`.
 
-```{r "6__Conclusion",optional=TRUE}
+```{r "7__Conclusion",optional=TRUE}
 awards()
 ```
 
 
 
-## Exercise 7. References
+## Exercise 8. References
 
 ### Bibliography
 
 - Auer, B., Rottmann, H. (2010): *Statistik und Oekonometrie fuer Wirtschaftswissenschaftler: Eine anwednungsorientierte Einfuehrung*. 1. Edition. Wiesbaden: Gabler Verlag.
 
+- Brady, M.B. (1977): *Mathew Brady's Illustrated History of the Civil War with 737 Brady Photographs*. New York: Fairfax Press.
+
+- Fahrmeir, L., Heumann, C., Kuenstler, R., Pigeot, I., Tutz, G. (2016): *Statistik: Der Weg zur Datenanalyse*. 8. Edition. Heidelberg: Springer-Verlag.
+
 - Fahrmeir, L., Kneib, T., Lang,S. (2009): *Regression: Modelle, Methoden und Anwendungen*. 2. Edition. Heidlberg: Springer Verlag.
 
-- Faraway, J.J. (2006): *Extending the Linear Model with R: Generalized Linear, Mixed Effects and Nonparametric Regression Models*. Boca Raton: Taylor and Francis Group, LLC.
+- Faraway, J.J. (2006): *Extending the Linear Model with R: Generalized Linear, Mixed Effects and Nonparametric Regression Models*. Boca Raton: Taylor and Francis Group.
+
+- Field, A., Miles, J., Field, Z. (2012): *Discovering Statistics Using R*. 1. Edition. London: SAGE Publications Ltd.
+
+- Fulford, S.L. (2015): *How Important are Banks for Development? National Banks in the United States, 1870-1900*. The Review of Economics and Statistics. 97(5):912-938.
+
+- Hahn, J., Todd, P., Van der Klaauw, W. (2001): *Identification and Estimation of Treatment Effects with a Regression-Discontinuity Design*. Econometrica 69. The Econometric Society. 201-209.
 
 - Hatzinger, R., Hornik, K., Nagel, H. (2011): *R Einfuehrung durch angewandte Statistik*. Muenchen: Pearson Studium
+
+- Imbens, G.W., Lemieux, T. (2008): *Regression Discontinuity Desgins: A Guide to Practice*. Journal of Econometrics 142. 615-635.
 
 - Kennedy, P. (2008): *A Guide to Econometrics*. 6. Edition. Malden: Blackwell Publishing.
 
 - Kohler, U., Kreuter, F. (2012): *Datenanalyse mit Stata: Allgemeine Konzepte der Datenanalyse und ihre praktische Anwendung*. 4. Edition. Muenchen: Oldenbourg Wissenschaftsverlag GmbH.
 
+- Luhmann, M. (2013): *R fuer Einsteiger: Einfuehrung in die Statistiksoftware fuer die Sozialwissenschaften*. 3. Edition. Basel: Beltz Verlag.
+
 - Maindonald, J., and Braun, J.W. (2010): *Data Analysis and Graphics Using R: An Example-Based Approach*. 3. Edition. Cambridge: Cambridge University Press.
+
+- Panik, M.J. (2012): *Statistical Inference: A Short Course*. Online Resource. Hoboken, N.J: Wiley.
+
+- Varian, H.R. (2011): *Grundzuege der Mikrooekonomik*. 8. Edition. Muenchen: Oldenbourg Wissenschaftsverlag GmbH.
+
+- Winker, P. (2007): *Empirische Wirtschaftsforschung und Oekonometrie*. 3. Edition. Heidelberg: Springer-Verlag.
 
 - Wooldrige, J.M. (2016): *Introductory Econometrics: A Modern Approach*. 6. Edition. Boston, MA: Cengage Learning
 
@@ -1269,17 +1263,23 @@ awards()
 
 ### R Packages
 
+- Becker, R.A., Wilks, A.R, Brownrigg, R., Minka, T.P., Deckmyn, A. (2018): *maps*. *Draw Geographical Maps*. R package verion 3.3.0. https://cran.r-project.org/web/packages/maps/index.html.
+
+- Croissant, Y., Millo, G., Tappe, K. (2017): *plm*. *Linear Models for Panel Data*. R package versionhttps://cran.r-project.org/web/packages/plm/index.html.
+
 - Gaure, S. (2016): *lfe*. *Linear Group Fixed Effects*. R package version 2.5-1998. https://cran.r-project.org/web/packages/lfe/lfe.pdf.
 
 - Hlavac, M. (2015): *stargazer*. *Well-Formatted Regression and Summary Statistics Tables*. R package version 5.2. https://cran.r-project.org/web/packages/stargazer/stargazer.pdf.
 
-- Hothorn, T., Zeileis, A., Farebrother, R. W. and Cummins, C. (2017): *lmtest*. *Testing Linear Regression Models*. R package version 0.9-35. https://cran.r-project.org/web/packages/lmtest/lmtest.pdf.
-
 - Kranz, S. (2015): *RTutor*. *R Problem Sets with Automatic Test of Solution and Hints*. R package version 2015.12.16. https://github.com/skranz/RTutor.
+
+- R Core Team (2017): *foreign*. *Read Data Stored by Minitab, S, SAS, SPSS, Stata, Systat, Weka, dBase,...*. R package version 0.8-69. https://cran.r-project.org/web/packages/foreign/foreign.pdf.
+
+- Stephens, J., Simonov, K., Xie, Y., Dong, Z., Wickham, H., Horner, J., Reikoch, Beasley, W., O'Connor, B., Warnes, G.R. (2018): *yaml*. *Methods to Convert R Data to YAML and Back*. R package version 2.2.0. https://cran.r-project.org/web/packages/yaml/index.html.
 
 - Wickham, H. and Chang, W. (2016): *ggplot2*. *Create Elegant Data Visualisations Using the Grammar of Graphics*. R package version 2.2.1. https://cran.r-project.org/web/packages/ggplot2/ggplot2.pdf.
 
-- Wickham, H., Francois, R., Henry, L. and M&uuml;ller, K. (2017): *dplyr*. *A Grammar of Data Manipulation*. R package version 0.7.3. https://cran.r-project.org/web/packages/dplyr/dplyr.pdf.
+- Wickham, H., Francois, R., Henry, L. and Mueller, K. (2017): *dplyr*. *A Grammar of Data Manipulation*. R package version 0.7.3. https://cran.r-project.org/web/packages/dplyr/dplyr.pdf.
 
 
 
@@ -1296,5 +1296,19 @@ awards()
 - https://cran.r-project.org/web/packages/plm/plm.pdf
 
 - https://de.wikipedia.org/wiki/Exogenit%C3%A4t_und_Endogenit%C3%A4t
+
+- https://www.statisticshowto.datasciencecentral.com/reverse-causality/
+
+- https://www.encyclopedia.com/social-sciences-and-law/law/law/united-states-civil-war#1G23437704519
+
+- http://www.let.rug.nl/usa/essays/general/a-brief-history-of-central-banking/national-banking-acts-of-1863-and-1864.php
+
+- https://feliperego.github.io/blog/2015/10/23/Interpreting-Model-Output-In-R
+
+- https://www.mitpressjournals.org/doi/pdf/10.1162/REST_a_00546
+
+- https://www.mitpressjournals.org/doi/suppl/10.1162/REST_a_00546/suppl_file/REST_a_00546-esupp.pdf
+
+- https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/PQ6ILM
 
 
